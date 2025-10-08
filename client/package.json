@@ -1,0 +1,27 @@
+{
+  "name": "cycure-client",
+  "version": "1.0.0",
+  "description": "Frontend client for CyCure Cyber Security Quiz Site",
+  "main": "src/main.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "cybersecurity",
+    "quiz",
+    "vue",
+    "javascript"
+  ],
+  "author": "CyCure101",
+  "license": "ISC",
+  "dependencies": {
+    "@vitejs/plugin-vue": "^6.0.1",
+    "axios": "^1.12.2",
+    "vite": "^7.1.9",
+    "vue": "^3.5.22",
+    "vue-router": "^4.5.1"
+  }
+}
