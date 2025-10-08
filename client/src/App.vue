@@ -1,21 +1,32 @@
 <template>
   <div id="app">
-    <nav class="navbar">
+    <!-- only render nav after auth is checked -->
+    <nav class="navbar" v-if="checkedAuth">
       <div class="nav-brand">
         <h1>CyCure</h1>
       </div>
-      <div class="nav-links">
+      <div class="nav-links" v-if="isLoggedIn">
         <router-link to="/" class="nav-link">Home</router-link>
-        <router-link to="/login" class="nav-link" v-if="!isLoggedIn">Login</router-link>
-        <router-link to="/register" class="nav-link" v-if="!isLoggedIn">Register</router-link>
-        <span class="nav-link" v-if="isLoggedIn">Welcome, {{ user.username }}!</span>
-        <button @click="logout" class="nav-link logout-btn" v-if="isLoggedIn">Logout</button>
+
+        <template v-if="!isLoggedIn">
+          <router-link to="/login" class="nav-link">Login</router-link>
+          <router-link to="/register" class="nav-link">Register</router-link>
+        </template>
+
+        <template v-else>
+          <span class="nav-link">Welcome, {{ currentUser.username }}!</span>
+          <button @click="logout" class="nav-link logout-btn">Logout</button>
+        </template>
       </div>
     </nav>
-    
-    <main class="main-content">
+
+    <main class="main-content" v-if="checkedAuth">
       <router-view />
     </main>
+
+    <div v-else class="loading">
+      Loading...
+    </div>
   </div>
 </template>
 
@@ -23,24 +34,29 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import apiService from './services/apiService'
+import { isLoggedIn, currentUser } from '../auth'
 
 export default {
   name: 'App',
   setup() {
     const router = useRouter()
-    const isLoggedIn = ref(false)
-    const user = ref({})
+    const checkedAuth = ref(false)
 
     const checkAuth = async () => {
       try {
         const response = await apiService.getCurrentUser()
-        if (response.success) {
+        if (response && response.user) {
           isLoggedIn.value = true
-          user.value = response.user
+          currentUser.value = response.user
+        } else {
+          isLoggedIn.value = false
+          currentUser.value = {}
         }
       } catch (error) {
         isLoggedIn.value = false
-        user.value = {}
+        currentUser.value = {}
+      } finally {
+        checkedAuth.value = true
       }
     }
 
@@ -48,8 +64,8 @@ export default {
       try {
         await apiService.logout()
         isLoggedIn.value = false
-        user.value = {}
-        router.push('/')
+        currentUser.value = {}
+        router.push('/login')
       } catch (error) {
         console.error('Logout error:', error)
       }
@@ -59,11 +75,7 @@ export default {
       checkAuth()
     })
 
-    return {
-      isLoggedIn,
-      user,
-      logout
-    }
+    return { isLoggedIn, currentUser, logout, checkedAuth }
   }
 }
 </script>

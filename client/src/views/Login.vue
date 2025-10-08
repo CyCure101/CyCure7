@@ -46,6 +46,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import apiService from '../services/apiService'
+import { isLoggedIn, currentUser } from '../../auth.js'
 
 export default {
   name: 'Login',
@@ -53,7 +54,7 @@ export default {
     const router = useRouter()
     const loading = ref(false)
     const error = ref('')
-    
+
     const form = ref({
       email: '',
       password: ''
@@ -62,10 +63,13 @@ export default {
     const handleLogin = async () => {
       loading.value = true
       error.value = ''
-      
+
       try {
         const response = await apiService.login(form.value)
         if (response.success) {
+          isLoggedIn.value = true
+          currentUser.value = response.user
+
           router.push('/')
         } else {
           error.value = response.message
