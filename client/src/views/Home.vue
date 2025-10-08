@@ -41,6 +41,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import apiService from '../services/apiService'
+import {isLoggedIn} from "../../auth";
 
 export default {
   name: 'Home',
@@ -49,6 +50,12 @@ export default {
     const quizzes = ref([])
     const loading = ref(true)
     const error = ref('')
+
+    // Authentication Check: Redirect if not logged in
+    if (!isLoggedIn.value) {
+      router.replace('/login')
+      return { startQuiz: () => {} }
+    }
 
     const fetchQuizzes = async () => {
       try {
