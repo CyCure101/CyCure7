@@ -42,6 +42,21 @@ const apiService = {
   async getQuizQuestions(quizId) {
     const response = await axios.get(`${API_BASE_URL}/quizzes/${quizId}/questions`)
     return response.data
+  },
+
+  async submitQuiz(quizId, answers) {
+    const response = await axios.post(`${API_BASE_URL}/quizzes/${quizId}/submit`, 
+      { answers }, 
+      { withCredentials: true }
+    )
+    return response.data
+  },
+
+  async getUserAttempts(userId) {
+    const response = await axios.get(`${API_BASE_URL}/users/${userId}/attempts`, {
+      withCredentials: true
+    })
+    return response.data
   }
 }
 
