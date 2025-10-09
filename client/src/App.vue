@@ -17,7 +17,14 @@
           <span class="nav-link">Welcome, {{ currentUser.username }}!</span>
           <button @click="logout" class="nav-link logout-btn">Logout</button>
         </template>
+
+        <template v-if="isLoggedIn">
+          <router-link to="/myresults" class="nav-link">MyResults</router-link>
+        </template>
+
       </div>
+
+
     </nav>
 
     <main class="main-content" v-if="checkedAuth">
