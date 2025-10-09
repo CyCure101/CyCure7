@@ -24,8 +24,8 @@
         <p>{{ quiz.description }}</p>
         <div class="quiz-progress">
           <div class="progress-bar">
-            <div 
-              class="progress-fill" 
+            <div
+              class="progress-fill"
               :style="{ width: progressPercentage + '%' }"
             ></div>
           </div>
@@ -41,20 +41,20 @@
           <h3 class="question-text">
             {{ currentQuestion.question_text }}
           </h3>
-          
+
           <div class="answers-container">
-            <div 
-              v-for="answer in currentQuestion.answers" 
+            <div
+              v-for="answer in currentQuestion.answers"
               :key="answer.id"
               class="answer-option"
-              :class="{ 
+              :class="{
                 'selected': selectedAnswer === answer.id,
-                'disabled': isSubmitting 
+                'disabled': isSubmitting
               }"
               @click="selectAnswer(answer.id)"
             >
               <div class="answer-radio">
-                <div 
+                <div
                   class="radio-circle"
                   :class="{ 'checked': selectedAnswer === answer.id }"
                 ></div>
@@ -63,28 +63,37 @@
             </div>
           </div>
 
+          <div
+              v-if="showFeedback"
+              class="feedback-message"
+              :class="{ correct: isCorrect, wrong: !isCorrect }"
+          >
+            <p>{{ isCorrect ? '✅ Correct!' : '❌ Wrong answer!' }}</p>
+          </div>
+
+
           <!-- Navigation Buttons -->
           <div class="quiz-navigation">
-            <button 
-              @click="previousQuestion" 
+            <button
+              @click="previousQuestion"
               class="btn btn-secondary"
               :disabled="currentQuestionIndex === 0 || isSubmitting"
             >
               Previous
             </button>
-            
-            <button 
+
+            <button
               v-if="currentQuestionIndex < questions.length - 1"
-              @click="nextQuestion" 
+              @click="nextQuestion"
               class="btn btn-primary"
               :disabled="!selectedAnswer || isSubmitting"
             >
               Next
             </button>
-            
-            <button 
+
+            <button
               v-else
-              @click="submitQuiz" 
+              @click="submitQuiz"
               class="btn btn-success"
               :disabled="!selectedAnswer || isSubmitting"
             >
@@ -107,14 +116,17 @@ export default {
   setup() {
     const route = useRoute()
     const router = useRouter()
-    
+
     const quiz = ref({})
     const questions = ref([])
     const loading = ref(true)
     const error = ref('')
     const isLoggedIn = ref(false)
     const isSubmitting = ref(false)
-    
+
+    const showFeedback = ref(false)
+    const isCorrect = ref(null)
+
     const currentQuestionIndex = ref(0)
     const selectedAnswer = ref(null)
     const userAnswers = ref({}) // Store all user answers
@@ -140,9 +152,9 @@ export default {
       try {
         loading.value = true
         error.value = ''
-        
+
         const quizId = route.params.id
-        
+
         // Load quiz details
         const quizResponse = await apiService.getQuiz(quizId)
         if (!quizResponse.success) {
@@ -170,10 +182,26 @@ export default {
     }
 
     const selectAnswer = (answerId) => {
-      if (isSubmitting.value) return
-      
+      if (isSubmitting.value || showFeedback.value) return
+
       selectedAnswer.value = answerId
       userAnswers.value[currentQuestion.value.id] = answerId
+
+      // Find the selected answer object
+      const answer = currentQuestion.value.answers.find(a => a.id === answerId)
+
+      // Check if correct
+      isCorrect.value = answer.is_correct === 1 || answer.is_correct === true
+      showFeedback.value = true
+
+      // Disable feedback after short delay (e.g. 1.5s) before moving on
+      setTimeout(() => {
+        showFeedback.value = false
+        isCorrect.value = null
+        if (currentQuestionIndex.value < questions.value.length - 1) {
+          nextQuestion()
+        }
+      }, 1500)
     }
 
     const nextQuestion = () => {
@@ -193,7 +221,7 @@ export default {
     const submitQuiz = async () => {
       try {
         isSubmitting.value = true
-        
+
         // Prepare answers array
         const answers = Object.keys(userAnswers.value).map(questionId => ({
           questionId: parseInt(questionId),
@@ -202,7 +230,7 @@ export default {
 
         // Submit quiz
         const response = await apiService.submitQuiz(route.params.id, answers)
-        
+
         if (response.success) {
           // Navigate to results page, include summary in query for display
           const { attemptId, score, totalQuestions, correctCount } = response.results
@@ -236,7 +264,9 @@ export default {
       selectAnswer,
       nextQuestion,
       previousQuestion,
-      submitQuiz
+      submitQuiz,
+      showFeedback,
+      isCorrect
     }
   }
 }
@@ -438,4 +468,29 @@ export default {
 .btn-success:hover:not(:disabled) {
   background-color: #229954;
 }
+
+.feedback-message {
+  text-align: center;
+  font-weight: bold;
+  font-size: 1.2rem;
+  margin-top: 1rem;
+  padding: 0.75rem;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.feedback-message.correct {
+  color: #27ae60;
+  background-color: #eafaf1;
+  border: 2px solid #27ae60;
+  margin-bottom: 1rem;
+}
+
+.feedback-message.wrong {
+  color: #e74c3c;
+  background-color: #fdecea;
+  border: 2px solid #e74c3c;
+  margin-bottom: 1rem;
+}
+
 </style>
