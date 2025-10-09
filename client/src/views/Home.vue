@@ -3,20 +3,20 @@
     <div class="hero">
       <h1>Welcome to CyCure</h1>
       <p>Test your cybersecurity knowledge with our interactive quizzes</p>
-      
+
       <div v-if="loading" class="loading">
         <p>Loading quizzes...</p>
       </div>
-      
+
       <div v-else-if="error" class="error">
         <p>{{ error }}</p>
       </div>
-      
+
       <div v-else class="quiz-modules">
-        <div 
-          v-for="quiz in quizzes" 
-          :key="quiz.id" 
-          class="module-card"
+        <div
+            v-for="quiz in quizzes"
+            :key="quiz.id"
+            class="module-card"
         >
           <h3>{{ quiz.title }}</h3>
           <p>{{ quiz.description }}</p>
@@ -24,13 +24,24 @@
             <span class="quiz-type">{{ quiz.module_type }}</span>
             <span class="question-count">{{ quiz.total_questions }} questions</span>
           </div>
-          <button 
-            @click="startQuiz(quiz.id)" 
-            class="btn btn-primary"
-            :disabled="quiz.total_questions === 0"
-          >
-            {{ quiz.total_questions === 0 ? 'Coming Soon' : 'Start Quiz' }}
-          </button>
+          <div class="quiz-actions">
+            <!-- Read Theory Button -->
+            <button
+                @click="goToTheory(quiz.id)"
+                class="btn btn-secondary"
+            >
+              Read Theory
+            </button>
+            <!-- Start Quiz Button -->
+            <button
+                @click="startQuiz(quiz.id)"
+                class="btn btn-primary"
+                :disabled="!completedTheory[quiz.id]"
+            >
+              {{ completedTheory[quiz.id] ? 'Start Quiz' : 'Locked' }}
+            </button>
+          </div>
+
         </div>
       </div>
     </div>
@@ -38,10 +49,10 @@
 </template>
 
 <script>
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import {ref, onMounted} from 'vue'
+import {useRouter} from 'vue-router'
 import apiService from '../services/apiService'
-import {isLoggedIn} from "../../auth";
+import {isLoggedIn} from '../../auth'
 
 export default {
   name: 'Home',
@@ -50,11 +61,11 @@ export default {
     const quizzes = ref([])
     const loading = ref(true)
     const error = ref('')
+    const completedTheory = ref({})
 
-    // Authentication Check: Redirect if not logged in
     if (!isLoggedIn.value) {
       router.replace('/login')
-      return { startQuiz: () => {} }
+      return {}
     }
 
     const fetchQuizzes = async () => {
@@ -74,19 +85,40 @@ export default {
       }
     }
 
+    const goToTheory = (quizId) => {
+      router.push(`/quiz/${quizId}/theory`)
+    }
+
+
+    const markTheoryComplete = (quizId) => {
+      const saved = JSON.parse(localStorage.getItem('completedTheory') || '{}')
+      saved[quizId] = true
+      localStorage.setItem('completedTheory', JSON.stringify(saved))
+      completedTheory.value = saved
+    }
+
     const startQuiz = (quizId) => {
+      if (!completedTheory.value[quizId]) {
+        alert('Please complete the theory section first!')
+        return
+      }
       router.push(`/quiz/${quizId}`)
     }
 
     onMounted(() => {
       fetchQuizzes()
+      const saved = JSON.parse(localStorage.getItem('completedTheory') || '{}')
+      completedTheory.value = saved
     })
 
     return {
       quizzes,
       loading,
       error,
-      startQuiz
+      goToTheory,
+      startQuiz,
+      completedTheory,
+      markTheoryComplete
     }
   }
 }
@@ -124,7 +156,7 @@ export default {
   background: white;
   padding: 2rem;
   border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   transition: transform 0.3s;
 }
 
