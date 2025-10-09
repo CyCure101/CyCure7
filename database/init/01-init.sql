@@ -1,545 +1,362 @@
-USE cycure_quiz;
-
-CREATE TABLE IF NOT EXISTS users
-(
-    id         INT PRIMARY KEY AUTO_INCREMENT,
-    username   VARCHAR(50) UNIQUE  NOT NULL,
-    email      VARCHAR(100) UNIQUE NOT NULL,
-    password   VARCHAR(255)        NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE IF NOT EXISTS quizzes
-(
-    id              INT PRIMARY KEY AUTO_INCREMENT,
-    module_type     ENUM ('Customer Service', 'IT-Security', 'General') NOT NULL,
-    title           VARCHAR(200)                                        NOT NULL,
-    description     TEXT,
-    total_questions INT       DEFAULT 0,
-    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE IF NOT EXISTS questions
-(
-    id            INT PRIMARY KEY AUTO_INCREMENT,
-    quiz_id       INT  NOT NULL,
-    question_text TEXT NOT NULL,
-    question_type ENUM ('multiple_choice') DEFAULT 'multiple_choice',
-    FOREIGN KEY (quiz_id) REFERENCES quizzes (id) ON DELETE CASCADE
-);
-
-CREATE TABLE IF NOT EXISTS answers
-(
-    id           INT PRIMARY KEY AUTO_INCREMENT,
-    question_id  INT  NOT NULL,
-    answer_text  TEXT NOT NULL,
-    is_correct   BOOLEAN DEFAULT FALSE,
-    answer_order INT  NOT NULL CHECK (answer_order BETWEEN 1 AND 4),
-    FOREIGN KEY (question_id) REFERENCES questions (id) ON DELETE CASCADE
-);
-
-CREATE TABLE IF NOT EXISTS user_attempts
-(
-    id              INT PRIMARY KEY AUTO_INCREMENT,
-    user_id         INT NOT NULL,
-    quiz_id         INT NOT NULL,
-    score           INT       DEFAULT 0,
-    total_questions INT       DEFAULT 0,
-    completed_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
-    FOREIGN KEY (quiz_id) REFERENCES quizzes (id) ON DELETE CASCADE
-);
-
-CREATE TABLE IF NOT EXISTS user_responses
-(
-    id                 INT PRIMARY KEY AUTO_INCREMENT,
-    attempt_id         INT NOT NULL,
-    question_id        INT NOT NULL,
-    selected_answer_id INT NOT NULL,
-    is_correct         BOOLEAN DEFAULT FALSE,
-    FOREIGN KEY (attempt_id) REFERENCES user_attempts (id) ON DELETE CASCADE,
-    FOREIGN KEY (question_id) REFERENCES questions (id) ON DELETE CASCADE,
-    FOREIGN KEY (selected_answer_id) REFERENCES answers (id) ON DELETE CASCADE
-);
-
-INSERT INTO quizzes (module_type, title, description, total_questions)
-VALUES ('Customer Service', 'Basic Customer Service Quiz', 'Test your customer service knowledge', 5),
-       ('IT-Security', 'Cybersecurity Fundamentals', 'Basic cybersecurity concepts and best practices', 5),
-       ('General', 'General Security Awareness', 'General security awareness questions', 5);
-
-INSERT INTO questions (quiz_id, question_text)
-VALUES (1, 'Vad är viktigt att tänka på när man hanterar kunders personuppgifter?'),
-       (1, 'Vilket av följande är ett exempel på stark autentisering?'),
-       (1, 'Hur bör du agera om en kund ber dig dela deras lösenord?'),
-       (1, 'Vad är GDPR:s huvudsakliga syfte?'),
-       (1, 'Hur ska du hantera ett misstänkt phishingmejl från en kund?'),
-       (1, 'Vilken information bör du undvika att skriva i ett öppet supportärende?'),
-       (1, 'Vad innebär begreppet "Need to Know"?'),
-       (1, 'Hur skyddar du kunddata i en delad arbetsmiljö?'),
-       (1, 'Vad gör du om du misstänker att en kollega delar kunddata olämpligt?'),
-       (1, 'Vilket är ett exempel på säkert kundbemötande online?'),
-       (1, 'Hur hanterar du kundens ID-verifiering på ett säkert sätt?'),
-       (1, 'Vad är bästa praxis för att stänga ett supportärende?'),
-       (1, 'Hur ska du förhindra obehörig åtkomst till kundsystemet?'),
-       (1, 'Vilket är ett tecken på social engineering vid kundkontakt?'),
-       (1, 'Varför är det viktigt att logga ut från kundsystemet när du är klar?'),
-       (2, 'Vad är phishing?'),
-       (2, 'Vilken typ av malware krypterar dina filer och kräver betalning?'),
-       (2, 'Vad är syftet med en brandvägg?'),
-       (2, 'Vilket av följande är ett exempel på tvåfaktorsautentisering?'),
-       (2, 'Hur skyddar du bäst ditt lösenord?'),
-       (2, 'Vad är ett säkert sätt att dela filer med kollegor?'),
-       (2, 'Vad innebär ”man-in-the-middle”-attack?'),
-       (2, 'Vilken protokoll används för säker webbtrafik?'),
-       (2, 'Vad är ett VPN och varför används det?'),
-       (2, 'Hur kan du upptäcka ett skadligt e-postmeddelande?'),
-       (2, 'Vad är brute force attack?'),
-       (2, 'Vad innebär principle of least privilege?'),
-       (2, 'Vad är ransomware?'),
-       (2, 'Vilket verktyg kan användas för att upptäcka intrång i nätverk?'),
-       (2, 'Hur ofta bör man uppdatera program och operativsystem?'),
-       (3, 'Vad är social engineering?'),
-       (3, 'Vilket av följande är ett säkert lösenord?'),
-       (3, 'Hur skyddar du dig mot skadlig programvara?'),
-       (3, 'Vad bör du göra om du hittar en USB-sticka på jobbet?'),
-       (3, 'Vilket är ett tecken på phishing på nätet?'),
-       (3, 'Varför ska du inte använda samma lösenord på flera konton?'),
-       (3, 'Hur skyddar du din mobila enhet?'),
-       (3, 'Vad är en säker surfvanor på offentliga Wi-Fi-nätverk?'),
-       (3, 'Hur hanterar du misstänkta bilagor i e-post?'),
-       (3, 'Vad är tvåstegsverifiering?'),
-       (3, 'Vilken är bästa praxis för borttagning av känslig information?'),
-       (3, 'Vad är viktigt vid lösenordshantering i företaget?'),
-       (3, 'Vilken fysisk säkerhetsåtgärd är viktig på kontoret?'),
-       (3, 'Hur känner du igen en säker webbplats?'),
-       (3, 'Vad är ett tecken på insider hot i företaget?');
-
-
-
-INSERT INTO answers (question_id, answer_text, is_correct, answer_order)
-VALUES
--- 1
-(1, 'Dela endast med kollegor vid behov och enligt policy', TRUE, 1),
-(1, 'Spara på skrivbordet för snabb åtkomst', FALSE, 2),
-(1, 'Skicka via e-post utan kryptering', FALSE, 3),
-(1, 'Lagra i privata anteckningar', FALSE, 4),
-
--- 2
-(2, 'Tvåfaktorsautentisering (2FA)', TRUE, 1),
-(2, 'Enbart användarnamn', FALSE, 2),
-(2, 'Födelsedatum som lösenord', FALSE, 3),
-(2, 'Delat konto', FALSE, 4),
-
--- 3
-(3, 'Informera kunden att lösenord är konfidentiellt', TRUE, 1),
-(3, 'Spara lösenordet åt kunden', FALSE, 2),
-(3, 'Skicka via SMS', FALSE, 3),
-(3, 'Anteckna i kundkortet', FALSE, 4),
-
--- 4
-(4, 'Skydda individers personuppgifter', TRUE, 1),
-(4, 'Förbjuda reklam', FALSE, 2),
-(4, 'Öka intern försäljning', FALSE, 3),
-(4, 'Reglera e-postkommunikation', FALSE, 4),
-
--- 5
-(5, 'Rapportera till IT och svara inte', TRUE, 1),
-(5, 'Öppna länken för att kontrollera', FALSE, 2),
-(5, 'Vidarebefordra till kollega', FALSE, 3),
-(5, 'Svara med kunddata', FALSE, 4),
-
--- 6
-(6, 'Personnummer', FALSE, 1),
-(6, 'Fullständigt kreditkortsnummer', FALSE, 2),
-(6, 'Interna lösenord', FALSE, 3),
-(6, 'Allt ovanstående', TRUE, 4),
-
--- 7
-(7, 'Tillgång ges endast till dem som behöver det', TRUE, 1),
-(7, 'Alla får se all data', FALSE, 2),
-(7, 'Delning ökar effektivitet', FALSE, 3),
-(7, 'Behov avgörs av användaren själv', FALSE, 4),
-
--- 8
-(8, 'Lås skärmen när du lämnar platsen', TRUE, 1),
-(8, 'Spara kundlistor öppet', FALSE, 2),
-(8, 'Dela dator med kollegor', FALSE, 3),
-(8, 'Använd USB-minne utan kryptering', FALSE, 4),
-
--- 9
-(9, 'Rapportera enligt intern policy', TRUE, 1),
-(9, 'Ignorera situationen', FALSE, 2),
-(9, 'Diskutera med kollegan', FALSE, 3),
-(9, 'Publicera internt', FALSE, 4),
-
--- 10
-(10, 'Använd säkra chattar med verifiering', TRUE, 1),
-(10, 'Ge kundens data till tredje part', FALSE, 2),
-(10, 'Använd öppna forum', FALSE, 3),
-(10, 'Undvik ID-verifiering', FALSE, 4),
-
--- 11
-(11, 'Begär flera identifierande uppgifter', TRUE, 1),
-(11, 'Acceptera första namnet', FALSE, 2),
-(11, 'Ignorera verifiering', FALSE, 3),
-(11, 'Fråga efter lösenordet', FALSE, 4),
-
--- 12
-(12, 'Bekräfta lösning & tacka kunden', TRUE, 1),
-(12, 'Stäng utan att informera', FALSE, 2),
-(12, 'Ignorera feedback', FALSE, 3),
-(12, 'Radera historik', FALSE, 4),
-
--- 13
-(13, 'Använd stark autentisering', TRUE, 1),
-(13, 'Skriv lösenord på papper', FALSE, 2),
-(13, 'Dela konton', FALSE, 3),
-(13, 'Använd publika nätverk', FALSE, 4),
-
--- 14
-(14, 'Personen pressar dig att bryta policy', TRUE, 1),
-(14, 'Kunden tackar för hjälpen', FALSE, 2),
-(14, 'Frågor om öppettider', FALSE, 3),
-(14, 'Vanliga felsökningsfrågor', FALSE, 4),
-
--- 15
-(15, 'För att förhindra obehörig åtkomst', TRUE, 1),
-(15, 'För att snabba upp datorn', FALSE, 2),
-(15, 'För att spara energi', FALSE, 3),
-(15, 'För att avsluta program', FALSE, 4),
-
--- 1
-(16, 'Försök att lura användare att lämna ut känslig information', TRUE, 1),
-(16, 'En typ av antivirusprogram', FALSE, 2),
-(16, 'En brandväggsinställning', FALSE, 3),
-(16, 'En säkerhetscertifiering', FALSE, 4),
-
--- 2
-(17, 'Ransomware', TRUE, 1),
-(17, 'Trojan', FALSE, 2),
-(17, 'Adware', FALSE, 3),
-(17, 'Spyware', FALSE, 4),
-
--- 3
-(18, 'Blockera obehörig trafik och skydda nätverk', TRUE, 1),
-(18, 'Förbättra hårdvaruprestanda', FALSE, 2),
-(18, 'Kryptera e-post', FALSE, 3),
-(18, 'Övervaka användarbeteende', FALSE, 4),
-
--- 4
-(19, 'Lösenord + SMS-kod', TRUE, 1),
-(19, 'Enbart lösenord', FALSE, 2),
-(19, 'Användarnamn', FALSE, 3),
-(19, 'E-postadress', FALSE, 4),
-
--- 5
-(20, 'Använd starka, unika lösenord och lösenordshanterare', TRUE, 1),
-(20, 'Skriv ner på post-it', FALSE, 2),
-(20, 'Dela med kollegor', FALSE, 3),
-(20, 'Återanvänd samma lösenord överallt', FALSE, 4),
-
--- 6
-(21, 'Använd kryptering och säkra molntjänster', TRUE, 1),
-(21, 'Skicka via vanlig e-post', FALSE, 2),
-(21, 'Ladda upp på öppna forum', FALSE, 3),
-(21, 'Använd USB utan lösenord', FALSE, 4),
-
--- 7
-(22, 'Att avlyssna kommunikationen mellan två parter', TRUE, 1),
-(22, 'Att hacka ett lösenord med program', FALSE, 2),
-(22, 'Att installera antivirus', FALSE, 3),
-(22, 'Att skicka spam', FALSE, 4),
-
--- 8
-(23, 'HTTPS', TRUE, 1),
-(23, 'HTTP', FALSE, 2),
-(23, 'FTP', FALSE, 3),
-(23, 'SMTP', FALSE, 4),
-
--- 9
-(24, 'Skapar en krypterad tunnel för säkrare kommunikation', TRUE, 1),
-(24, 'Blockerar malware', FALSE, 2),
-(24, 'Håller datorn snabb', FALSE, 3),
-(24, 'Rensar cookies', FALSE, 4),
-
--- 10
-(25, 'Kollar avsändaradress, stavfel och länkar', TRUE, 1),
-(25, 'Öppna alla bilagor', FALSE, 2),
-(25, 'Klicka på alla länkar', FALSE, 3),
-(25, 'Svara direkt med känslig info', FALSE, 4),
-
--- 11
-(26, 'Försök att gissa lösenord med systematiska försök', TRUE, 1),
-(26, 'Fysiskt stjäla datorn', FALSE, 2),
-(26, 'Skicka phishingmejl', FALSE, 3),
-(26, 'Använda antivirus', FALSE, 4),
-
--- 12
-(27, 'Användare får bara de behörigheter de behöver', TRUE, 1),
-(27, 'Alla får full tillgång', FALSE, 2),
-(27, 'Delad åtkomst minskar risk', FALSE, 3),
-(27, 'Bevilja åtkomst efter behov av användare', FALSE, 4),
-
--- 13
-(28, 'Skadlig kod som krypterar filer och kräver betalning', TRUE, 1),
-(28, 'Brandvägg', FALSE, 2),
-(28, 'VPN', FALSE, 3),
-(28, 'Antivirus', FALSE, 4),
-
--- 14
-(29, 'Intrusion Detection System (IDS)', TRUE, 1),
-(29, 'Word Processor', FALSE, 2),
-(29, 'Firewall', FALSE, 3),
-(29, 'VPN', FALSE, 4),
-
--- 15
-(30, 'Så ofta som uppdateringar finns tillgängliga', TRUE, 1),
-(30, 'Aldrig', FALSE, 2),
-(30, 'Endast vid problem', FALSE, 3),
-(30, 'En gång per år', FALSE, 4),
-
--- 16
-(31, 'Manipulation av personer för att få tillgång till information', TRUE, 1),
-(31, 'Ett antivirusprogram', FALSE, 2),
-(31, 'Brandväggsregel', FALSE, 3),
-(31, 'Lösenordsåterställning', FALSE, 4),
-
--- 17
-(32, 'Xy!9@Pq4#', TRUE, 1),
-(32, 'password123', FALSE, 2),
-(32, 'abc123', FALSE, 3),
-(32, '123456', FALSE, 4),
-
--- 18
-(33, 'Installera uppdaterad antivirus och håll system uppdaterade', TRUE, 1),
-(33, 'Klicka på alla länkar', FALSE, 2),
-(33, 'Dela dator med kollegor', FALSE, 3),
-(33, 'Ignorera säkerhetsvarningar', FALSE, 4),
-
--- 19
-(34, 'Lämna den till IT för säker hantering', TRUE, 1),
-(34, 'Sätt i den i datorn direkt', FALSE, 2),
-(34, 'Ta hem den', FALSE, 3),
-(34, 'Ge till kollega utan kontroll', FALSE, 4),
-
--- 20
-(35, 'Stavfel, konstiga länkar och oväntade bilagor', TRUE, 1),
-(35, 'Kända avsändare', FALSE, 2),
-(35, 'Professionellt språk', FALSE, 3),
-(35, 'Signatur i mejl', FALSE, 4),
-
--- 21
-(36, 'Förhindrar att om ett konto blir hackat, alla andra också blir det', TRUE, 1),
-(36, 'Gör det enklare att komma ihåg', FALSE, 2),
-(36, 'Sparar tid', FALSE, 3),
-(36, 'Ökar nätverksprestanda', FALSE, 4),
-
--- 22
-(37, 'Använd PIN och biometrik, lås telefonen', TRUE, 1),
-(37, 'Dela med kollegor', FALSE, 2),
-(37, 'Skriv ner koden', FALSE, 3),
-(37, 'Stäng av lösenordet', FALSE, 4),
-
--- 23
-(38, 'Använd VPN och undvik att logga in på känsliga konton', TRUE, 1),
-(38, 'Använd öppet Wi-Fi utan skydd', FALSE, 2),
-(38, 'Dela lösenord över Wi-Fi', FALSE, 3),
-(38, 'Använd offentlig dator', FALSE, 4),
-
--- 24
-(39, 'Öppna aldrig misstänkta bilagor, verifiera avsändaren', TRUE, 1),
-(39, 'Öppna direkt', FALSE, 2),
-(39, 'Vidarebefordra till alla', FALSE, 3),
-(39, 'Spara på skrivbordet', FALSE, 4),
-
--- 25
-(40, 'Extra säkerhetssteg utöver lösenord', TRUE, 1),
-(40, 'En typ av virus', FALSE, 2),
-(40, 'Endast lösenord', FALSE, 3),
-(40, 'Säker e-post', FALSE, 4),
-
--- 26
-(41, 'Krossa hårddisk eller radera säkert via program', TRUE, 1),
-(41, 'Släng i papperskorg', FALSE, 2),
-(41, 'Lämna på skrivbordet', FALSE, 3),
-(41, 'Spara på USB', FALSE, 4),
-
--- 27
-(42, 'Använd starka lösenord, undvik återanvändning', TRUE, 1),
-(42, 'Alla får veta alla lösenord', FALSE, 2),
-(42, 'Skriv ner på papper', FALSE, 3),
-(42, 'Använd samma lösenord för alla', FALSE, 4),
-
--- 28
-(43, 'Lås dörrar och säkerhetskort', TRUE, 1),
-(43, 'Ha dörren öppen', FALSE, 2),
-(43, 'Dela nycklar med alla', FALSE, 3),
-(43, 'Lämna skrivbord obevakat', FALSE, 4),
-
--- 29
-(44, 'HTTPS och låsikon i webbläsaren', TRUE, 1),
-(44, 'HTTP', FALSE, 2),
-(44, 'Webbplatsens färger', FALSE, 3),
-(44, 'Stora bilder', FALSE, 4),
-
--- 30
-(45, 'Ovanliga beteenden från anställda, ex. dataläckor', TRUE, 1),
-(45, 'Anställda som tar kaffe', FALSE, 2),
-(45, 'Normala e-postsignaturer', FALSE, 3),
-(45, 'Standardarbetsrutiner', FALSE, 4);
-
-
--- Add 5 more Customer Service questions (quiz_id = 1)
-INSERT INTO questions (quiz_id, question_text) VALUES
-(1, 'What is the best way to handle a customer complaint about a product defect?'),
-(1, 'How should you respond when a customer asks for a refund?'),
-(1, 'What is the most important factor in building customer loyalty?'),
-(1, 'What should you do when a customer is speaking loudly and causing a scene?'),
-(1, 'How do you handle a customer who is asking for something outside of company policy?');
-
--- Add answers for the new Customer Service questions
-INSERT INTO answers (question_id, answer_text, is_correct, answer_order) VALUES
--- Question 6: Product defect complaint (question_id = 6)
-(6, 'Apologize sincerely, document the issue, and offer a solution', TRUE, 1),
-(6, 'Blame the customer for not reading instructions', FALSE, 2),
-(6, 'Ignore the complaint and hope it goes away', FALSE, 3),
-(6, 'Transfer them to another department immediately', FALSE, 4),
-
--- Question 7: Refund request (question_id = 7)
-(7, 'Listen to their reason, check policy, and process if appropriate', TRUE, 1),
-(7, 'Always say no to refunds', FALSE, 2),
-(7, 'Give refunds to everyone without questions', FALSE, 3),
-(7, 'Make them wait for a manager', FALSE, 4),
-
--- Question 8: Customer loyalty (question_id = 8)
-(8, 'Consistent quality service and genuine care for their needs', TRUE, 1),
-(8, 'Offering the lowest prices', FALSE, 2),
-(8, 'Having the most products available', FALSE, 3),
-(8, 'Being the fastest service', FALSE, 4),
-
--- Question 9: Loud customer scene (question_id = 9)
-(9, 'Remain calm, speak softly, and try to move to a private area', TRUE, 1),
-(9, 'Speak louder to match their volume', FALSE, 2),
-(9, 'Ignore them until they calm down', FALSE, 3),
-(9, 'Call security immediately', FALSE, 4),
-
--- Question 10: Outside policy request (question_id = 10)
-(10, 'Explain the policy clearly and offer alternative solutions', TRUE, 1),
-(10, 'Always say yes to keep the customer happy', FALSE, 2),
-(10, 'Refuse without explanation', FALSE, 3),
-(10, 'Transfer them to a manager immediately', FALSE, 4);
-
-UPDATE quizzes SET total_questions = 10 WHERE id = 1;
-
--- Add IT-Security quiz questions (quiz_id = 2)
-INSERT INTO questions (quiz_id, question_text) VALUES
-(2, 'What is the primary purpose of a firewall in network security?'),
-(2, 'Which of the following is considered the strongest password?'),
-(2, 'What does "phishing" refer to in cybersecurity?'),
-(2, 'What is two-factor authentication (2FA)?'),
-(2, 'What should you do if you receive a suspicious email with an attachment?'),
-(2, 'What is the purpose of encryption in data security?'),
-(2, 'Which of the following is a common sign of malware infection?'),
-(2, 'What is a VPN and why is it important for security?'),
-(2, 'What does "social engineering" mean in cybersecurity?'),
-(2, 'What is the best practice for handling sensitive data?'),
-(2, 'What is the difference between a virus and a worm?'),
-(2, 'What does HTTPS stand for and why is it important?'),
-(2, 'What is the purpose of a security patch or update?'),
-(2, 'What is the principle of least privilege in cybersecurity?'),
-(2, 'What should you do if you suspect your computer has been compromised?');
-
--- Add IT-Security quiz answers
-INSERT INTO answers (question_id, answer_text, is_correct, answer_order) VALUES
--- Question 1: Firewall purpose (question_id = 11)
-(11, 'To monitor and control incoming and outgoing network traffic', TRUE, 1),
-(11, 'To store user passwords securely', FALSE, 2),
-(11, 'To encrypt all data transmissions', FALSE, 3),
-(11, 'To backup important files automatically', FALSE, 4),
-
--- Question 2: Strongest password (question_id = 12)
-(12, 'MyP@ssw0rd!2024', TRUE, 1),
-(12, 'password123', FALSE, 2),
-(12, '12345678', FALSE, 3),
-(12, 'qwerty', FALSE, 4),
-
--- Question 3: Phishing definition (question_id = 13)
-(13, 'A cyber attack that uses deceptive emails or websites to steal sensitive information', TRUE, 1),
-(13, 'A type of computer virus', FALSE, 2),
-(13, 'A method of encrypting data', FALSE, 3),
-(13, 'A network security protocol', FALSE, 4),
-
--- Question 4: Two-factor authentication (question_id = 14)
-(14, 'A security method that requires two different forms of verification', TRUE, 1),
-(14, 'Using two different passwords', FALSE, 2),
-(14, 'Logging in from two different devices', FALSE, 3),
-(14, 'Having two user accounts', FALSE, 4),
-
--- Question 5: Suspicious email handling (question_id = 15)
-(15, 'Delete the email without opening the attachment', TRUE, 1),
-(15, 'Open the attachment to see what it contains', FALSE, 2),
-(15, 'Forward it to colleagues to warn them', FALSE, 3),
-(15, 'Reply to the sender asking for clarification', FALSE, 4),
-
--- Question 6: Encryption purpose (question_id = 16)
-(16, 'To convert data into a coded form that can only be read with a key', TRUE, 1),
-(16, 'To compress files to save storage space', FALSE, 2),
-(16, 'To organize files in folders', FALSE, 3),
-(16, 'To backup data automatically', FALSE, 4),
-
--- Question 7: Malware infection signs (question_id = 17)
-(17, 'Slow computer performance and unexpected pop-ups', TRUE, 1),
-(17, 'Faster internet connection', FALSE, 2),
-(17, 'More available storage space', FALSE, 3),
-(17, 'Better screen resolution', FALSE, 4),
-
--- Question 8: VPN purpose (question_id = 18)
-(18, 'A secure connection that encrypts internet traffic and hides your location', TRUE, 1),
-(18, 'A type of antivirus software', FALSE, 2),
-(18, 'A method to increase internet speed', FALSE, 3),
-(18, 'A tool to organize files', FALSE, 4),
-
--- Question 9: Social engineering (question_id = 19)
-(19, 'Manipulating people to reveal confidential information', TRUE, 1),
-(19, 'A type of computer programming', FALSE, 2),
-(19, 'A method of data encryption', FALSE, 3),
-(19, 'A network security protocol', FALSE, 4),
-
--- Question 10: Handling sensitive data (question_id = 20)
-(20, 'Encrypt it, limit access, and follow data protection policies', TRUE, 1),
-(20, 'Store it in a shared folder for easy access', FALSE, 2),
-(20, 'Email it to yourself for backup', FALSE, 3),
-(20, 'Print it out and keep physical copies', FALSE, 4),
-
--- Question 11: Virus vs Worm (question_id = 21)
-(21, 'A virus needs a host file to spread, while a worm can spread independently', TRUE, 1),
-(21, 'A virus is more dangerous than a worm', FALSE, 2),
-(21, 'A worm needs a host file to spread, while a virus can spread independently', FALSE, 3),
-(21, 'There is no difference between them', FALSE, 4),
-
--- Question 12: HTTPS (question_id = 22)
-(22, 'HyperText Transfer Protocol Secure - encrypts data between browser and server', TRUE, 1),
-(22, 'HyperText Transfer Protocol Standard - faster than HTTP', FALSE, 2),
-(22, 'HyperText Transfer Protocol Simple - easier to use than HTTP', FALSE, 3),
-(22, 'HyperText Transfer Protocol Safe - prevents all cyber attacks', FALSE, 4),
-
--- Question 13: Security patches (question_id = 23)
-(23, 'To fix vulnerabilities and security flaws in software', TRUE, 1),
-(23, 'To add new features to software', FALSE, 2),
-(23, 'To make software run faster', FALSE, 3),
-(23, 'To change the software interface', FALSE, 4),
-
--- Question 14: Principle of least privilege (question_id = 24)
-(24, 'Users should only have the minimum access rights necessary to perform their job', TRUE, 1),
-(24, 'Users should have access to all systems for convenience', FALSE, 2),
-(24, 'Only administrators should have access to systems', FALSE, 3),
-(24, 'Users should share passwords for better collaboration', FALSE, 4),
-
--- Question 15: Computer compromise response (question_id = 25)
-(25, 'Disconnect from internet, run antivirus scan, change passwords, notify IT', TRUE, 1),
-(25, 'Continue using the computer normally', FALSE, 2),
-(25, 'Restart the computer and hope it fixes itself', FALSE, 3),
-(25, 'Delete all files to remove the threat', FALSE, 4);
-
--- Update IT-Security quiz total questions count
-UPDATE quizzes SET total_questions = 15 WHERE id = 2;
+    USE cycure_quiz;
+
+    -- USERS TABLE
+    CREATE TABLE IF NOT EXISTS users
+    (
+        id         INT PRIMARY KEY AUTO_INCREMENT,
+        username   VARCHAR(50) UNIQUE  NOT NULL,
+        email      VARCHAR(100) UNIQUE NOT NULL,
+        password   VARCHAR(255)        NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+
+    -- QUIZZES TABLE
+    CREATE TABLE IF NOT EXISTS quizzes
+    (
+        id              INT PRIMARY KEY AUTO_INCREMENT,
+        module_type     ENUM ('Customer Service', 'IT-Security', 'General') NOT NULL,
+        title           VARCHAR(200)                                        NOT NULL,
+        description     TEXT,
+        total_questions INT       DEFAULT 0,
+        created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+
+    -- QUESTIONS TABLE
+    CREATE TABLE IF NOT EXISTS questions
+    (
+        id            INT PRIMARY KEY AUTO_INCREMENT,
+        quiz_id       INT  NOT NULL,
+        question_text TEXT NOT NULL,
+        question_type ENUM ('multiple_choice') DEFAULT 'multiple_choice',
+        FOREIGN KEY (quiz_id) REFERENCES quizzes (id) ON DELETE CASCADE
+    );
+
+    -- ANSWERS TABLE
+    CREATE TABLE IF NOT EXISTS answers
+    (
+        id           INT PRIMARY KEY AUTO_INCREMENT,
+        question_id  INT  NOT NULL,
+        answer_text  TEXT NOT NULL,
+        is_correct   BOOLEAN DEFAULT FALSE,
+        answer_order INT  NOT NULL CHECK (answer_order BETWEEN 1 AND 4),
+        FOREIGN KEY (question_id) REFERENCES questions (id) ON DELETE CASCADE
+    );
+
+    -- USER ATTEMPTS TABLE
+    CREATE TABLE IF NOT EXISTS user_attempts
+    (
+        id              INT PRIMARY KEY AUTO_INCREMENT,
+        user_id         INT NOT NULL,
+        quiz_id         INT NOT NULL,
+        score           INT       DEFAULT 0,
+        total_questions INT       DEFAULT 0,
+        completed_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
+        FOREIGN KEY (quiz_id) REFERENCES quizzes (id) ON DELETE CASCADE
+    );
+
+    -- USER RESPONSES TABLE
+    CREATE TABLE IF NOT EXISTS user_responses
+    (
+        id                 INT PRIMARY KEY AUTO_INCREMENT,
+        attempt_id         INT NOT NULL,
+        question_id        INT NOT NULL,
+        selected_answer_id INT NOT NULL,
+        is_correct         BOOLEAN DEFAULT FALSE,
+        FOREIGN KEY (attempt_id) REFERENCES user_attempts (id) ON DELETE CASCADE,
+        FOREIGN KEY (question_id) REFERENCES questions (id) ON DELETE CASCADE,
+        FOREIGN KEY (selected_answer_id) REFERENCES answers (id) ON DELETE CASCADE
+    );
+
+    -- QUIZZES
+    INSERT INTO quizzes (module_type, title, description, total_questions)
+    VALUES
+        ('Customer Service', 'Basic Customer Service Quiz', 'Test your customer service knowledge', 15),
+        ('IT-Security', 'Cybersecurity Fundamentals', 'Basic cybersecurity concepts and best practices', 15),
+        ('General', 'General Security Awareness', 'General security awareness questions', 15);
+
+    -- QUESTIONS (ENGLISH)
+    INSERT INTO questions (quiz_id, question_text)
+    VALUES
+    -- Customer Service (15)
+    (1, 'What is important to consider when handling customers\' personal data?'),
+    (1, 'Which of the following is an example of strong authentication?'),
+    (1, 'How should you act if a customer asks you to share their password?'),
+    (1, 'What is the main purpose of the GDPR?'),
+    (1, 'How should you handle a suspicious phishing email from a customer?'),
+    (1, 'What kind of information should you avoid writing in an open support ticket?'),
+    (1, 'What does the term "Need to Know" mean?'),
+    (1, 'How do you protect customer data in a shared workspace?'),
+    (1, 'What should you do if you suspect a colleague is sharing customer data inappropriately?'),
+    (1, 'What is an example of secure online customer interaction?'),
+    (1, 'How do you handle customer ID verification securely?'),
+    (1, 'What is best practice for closing a support ticket?'),
+    (1, 'How can you prevent unauthorized access to the customer system?'),
+    (1, 'Which is a sign of social engineering in customer contact?'),
+    (1, 'Why is it important to log out from the customer system when finished?'),
+
+    -- IT Security (15)
+    (2, 'What is phishing?'),
+    (2, 'Which type of malware encrypts your files and demands payment?'),
+    (2, 'What is the purpose of a firewall?'),
+    (2, 'Which of the following is an example of two-factor authentication?'),
+    (2, 'How can you best protect your password?'),
+    (2, 'What is a secure way to share files with colleagues?'),
+    (2, 'What does a "man-in-the-middle" attack mean?'),
+    (2, 'Which protocol is used for secure web traffic?'),
+    (2, 'What is a VPN and why is it used?'),
+    (2, 'How can you detect a malicious email?'),
+    (2, 'What is a brute force attack?'),
+    (2, 'What does the principle of least privilege mean?'),
+    (2, 'What is ransomware?'),
+    (2, 'Which tool can be used to detect intrusions in a network?'),
+    (2, 'How often should software and operating systems be updated?'),
+
+    -- General Security Awareness (15)
+    (3, 'What is social engineering?'),
+    (3, 'Which of the following is a secure password?'),
+    (3, 'How can you protect yourself from malicious software?'),
+    (3, 'What should you do if you find a USB stick at work?'),
+    (3, 'What is a common sign of phishing online?'),
+    (3, 'Why should you not use the same password for multiple accounts?'),
+    (3, 'How can you protect your mobile device?'),
+    (3, 'What is safe browsing behavior on public Wi-Fi networks?'),
+    (3, 'How should you handle suspicious email attachments?'),
+    (3, 'What is two-step verification?'),
+    (3, 'What is best practice for deleting sensitive information?'),
+    (3, 'What is important in company password management?'),
+    (3, 'Which physical security measure is important in the office?'),
+    (3, 'How can you recognize a secure website?'),
+    (3, 'What is a sign of an insider threat in the company?');
+
+    -- ANSWERS (ENGLISH)
+    INSERT INTO answers (question_id, answer_text, is_correct, answer_order)
+    VALUES
+    -- Customer Service (1–15)
+    (1, 'Share only when necessary and according to policy', TRUE, 1),
+    (1, 'Save on your desktop for easy access', FALSE, 2),
+    (1, 'Send via unencrypted email', FALSE, 3),
+    (1, 'Store in personal notes', FALSE, 4),
+
+    (2, 'Two-factor authentication (2FA)', TRUE, 1),
+    (2, 'Username only', FALSE, 2),
+    (2, 'Using your birthdate as password', FALSE, 3),
+    (2, 'Shared account', FALSE, 4),
+
+    (3, 'Inform the customer that passwords are confidential', TRUE, 1),
+    (3, 'Store the password for them', FALSE, 2),
+    (3, 'Send it via SMS', FALSE, 3),
+    (3, 'Write it in the customer record', FALSE, 4),
+
+    (4, 'Protect individuals\' personal data', TRUE, 1),
+    (4, 'Ban advertisements', FALSE, 2),
+    (4, 'Increase internal sales', FALSE, 3),
+    (4, 'Regulate email communication', FALSE, 4),
+
+    (5, 'Report to IT and do not reply', TRUE, 1),
+    (5, 'Open the link to check it', FALSE, 2),
+    (5, 'Forward to a colleague', FALSE, 3),
+    (5, 'Reply with customer data', FALSE, 4),
+
+    (6, 'Personal identification number', FALSE, 1),
+    (6, 'Full credit card number', FALSE, 2),
+    (6, 'Internal passwords', FALSE, 3),
+    (6, 'All of the above', TRUE, 4),
+
+    (7, 'Access is granted only to those who need it', TRUE, 1),
+    (7, 'Everyone can view all data', FALSE, 2),
+    (7, 'Sharing increases efficiency', FALSE, 3),
+    (7, 'Users decide their own needs', FALSE, 4),
+
+    (8, 'Lock your screen when leaving your desk', TRUE, 1),
+    (8, 'Leave customer lists open', FALSE, 2),
+    (8, 'Share your computer with others', FALSE, 3),
+    (8, 'Use unencrypted USB drives', FALSE, 4),
+
+    (9, 'Report according to internal policy', TRUE, 1),
+    (9, 'Ignore the situation', FALSE, 2),
+    (9, 'Discuss with the colleague directly', FALSE, 3),
+    (9, 'Post it internally', FALSE, 4),
+
+    (10, 'Use secure, verified chat systems', TRUE, 1),
+    (10, 'Share customer data with third parties', FALSE, 2),
+    (10, 'Use open forums', FALSE, 3),
+    (10, 'Avoid ID verification', FALSE, 4),
+
+    (11, 'Request multiple identifying details', TRUE, 1),
+    (11, 'Accept only first name', FALSE, 2),
+    (11, 'Skip verification', FALSE, 3),
+    (11, 'Ask for their password', FALSE, 4),
+
+    (12, 'Confirm resolution and thank the customer', TRUE, 1),
+    (12, 'Close without informing the customer', FALSE, 2),
+    (12, 'Ignore feedback', FALSE, 3),
+    (12, 'Delete ticket history', FALSE, 4),
+
+    (13, 'Use strong authentication', TRUE, 1),
+    (13, 'Write passwords on paper', FALSE, 2),
+    (13, 'Share accounts', FALSE, 3),
+    (13, 'Use public networks', FALSE, 4),
+
+    (14, 'The person pressures you to break policy', TRUE, 1),
+    (14, 'Customer thanks you for help', FALSE, 2),
+    (14, 'Asks about opening hours', FALSE, 3),
+    (14, 'Normal troubleshooting questions', FALSE, 4),
+
+    (15, 'To prevent unauthorized access', TRUE, 1),
+    (15, 'To make the computer faster', FALSE, 2),
+    (15, 'To save energy', FALSE, 3),
+    (15, 'To close programs', FALSE, 4),
+
+    -- IT Security (16–30)
+    (16, 'Attempt to trick users into giving sensitive information', TRUE, 1),
+    (16, 'A type of antivirus software', FALSE, 2),
+    (16, 'A firewall setting', FALSE, 3),
+    (16, 'A security certification', FALSE, 4),
+
+    (17, 'Ransomware', TRUE, 1),
+    (17, 'Trojan', FALSE, 2),
+    (17, 'Adware', FALSE, 3),
+    (17, 'Spyware', FALSE, 4),
+
+    (18, 'Block unauthorized traffic and protect networks', TRUE, 1),
+    (18, 'Improve hardware performance', FALSE, 2),
+    (18, 'Encrypt emails', FALSE, 3),
+    (18, 'Monitor user behavior', FALSE, 4),
+
+    (19, 'Password + SMS code', TRUE, 1),
+    (19, 'Password only', FALSE, 2),
+    (19, 'Username', FALSE, 3),
+    (19, 'Email address', FALSE, 4),
+
+    (20, 'Use strong, unique passwords and a password manager', TRUE, 1),
+    (20, 'Write passwords on sticky notes', FALSE, 2),
+    (20, 'Share with colleagues', FALSE, 3),
+    (20, 'Reuse passwords everywhere', FALSE, 4),
+
+    (21, 'Use encryption and secure cloud services', TRUE, 1),
+    (21, 'Send via regular email', FALSE, 2),
+    (21, 'Upload to public forums', FALSE, 3),
+    (21, 'Use USB without a password', FALSE, 4),
+
+    (22, 'Intercepting communication between two parties', TRUE, 1),
+    (22, 'Guessing passwords with a program', FALSE, 2),
+    (22, 'Installing antivirus', FALSE, 3),
+    (22, 'Sending spam emails', FALSE, 4),
+
+    (23, 'HTTPS', TRUE, 1),
+    (23, 'HTTP', FALSE, 2),
+    (23, 'FTP', FALSE, 3),
+    (23, 'SMTP', FALSE, 4),
+
+    (24, 'Creates an encrypted tunnel for secure communication', TRUE, 1),
+    (24, 'Blocks malware', FALSE, 2),
+    (24, 'Keeps your computer fast', FALSE, 3),
+    (24, 'Deletes cookies', FALSE, 4),
+
+    (25, 'Check sender address, spelling errors, and links', TRUE, 1),
+    (25, 'Open all attachments', FALSE, 2),
+    (25, 'Click all links', FALSE, 3),
+    (25, 'Reply with sensitive data', FALSE, 4),
+
+    (26, 'Attempting to guess passwords by repeated tries', TRUE, 1),
+    (26, 'Physically stealing the computer', FALSE, 2),
+    (26, 'Sending phishing emails', FALSE, 3),
+    (26, 'Using antivirus software', FALSE, 4),
+
+    (27, 'Users get only the access they need', TRUE, 1),
+    (27, 'Everyone gets full access', FALSE, 2),
+    (27, 'Shared access reduces risk', FALSE, 3),
+    (27, 'Users decide their own privileges', FALSE, 4),
+
+    (28, 'Malicious software that encrypts files and demands ransom', TRUE, 1),
+    (28, 'Firewall', FALSE, 2),
+    (28, 'VPN', FALSE, 3),
+    (28, 'Antivirus', FALSE, 4),
+
+    (29, 'Intrusion Detection System (IDS)', TRUE, 1),
+    (29, 'Word processor', FALSE, 2),
+    (29, 'Firewall', FALSE, 3),
+    (29, 'VPN', FALSE, 4),
+
+    (30, 'As often as updates are available', TRUE, 1),
+    (30, 'Never', FALSE, 2),
+    (30, 'Only when problems occur', FALSE, 3),
+    (30, 'Once a year', FALSE, 4),
+
+    -- General (31–45)
+    (31, 'Manipulating people to gain access to information', TRUE, 1),
+    (31, 'An antivirus program', FALSE, 2),
+    (31, 'A firewall rule', FALSE, 3),
+    (31, 'Password reset', FALSE, 4),
+
+    (32, 'Xy!9@Pq4#', TRUE, 1),
+    (32, 'password123', FALSE, 2),
+    (32, 'abc123', FALSE, 3),
+    (32, '123456', FALSE, 4),
+
+    (33, 'Install up-to-date antivirus and keep systems updated', TRUE, 1),
+    (33, 'Click on all links', FALSE, 2),
+    (33, 'Share computers with coworkers', FALSE, 3),
+    (33, 'Ignore security warnings', FALSE, 4),
+
+    (34, 'Hand it to IT for safe handling', TRUE, 1),
+    (34, 'Plug it into your computer', FALSE, 2),
+    (34, 'Take it home', FALSE, 3),
+    (34, 'Give it to a coworker', FALSE, 4),
+
+    (35, 'Typos, strange links, and unexpected attachments', TRUE, 1),
+    (35, 'Known sender', FALSE, 2),
+    (35, 'Professional language', FALSE, 3),
+    (35, 'Email signature', FALSE, 4),
+
+    (36, 'Prevents one hacked account from compromising others', TRUE, 1),
+    (36, 'Makes passwords easier to remember', FALSE, 2),
+    (36, 'Saves time', FALSE, 3),
+    (36, 'Improves network speed', FALSE, 4),
+
+    (37, 'Use PIN and biometrics, lock the phone', TRUE, 1),
+    (37, 'Share your device', FALSE, 2),
+    (37, 'Write down your code', FALSE, 3),
+    (37, 'Disable your password', FALSE, 4),
+
+    (38, 'Use VPN and avoid logging into sensitive accounts', TRUE, 1),
+    (38, 'Use public Wi-Fi without protection', FALSE, 2),
+    (38, 'Share passwords over Wi-Fi', FALSE, 3),
+    (38, 'Use public computers', FALSE, 4),
+
+    (39, 'Never open suspicious attachments, verify sender', TRUE, 1),
+    (39, 'Open immediately', FALSE, 2),
+    (39, 'Forward to everyone', FALSE, 3),
+    (39, 'Save to desktop', FALSE, 4),
+
+    (40, 'An extra security step beyond the password', TRUE, 1),
+    (40, 'A type of virus', FALSE, 2),
+    (40, 'Password only', FALSE, 3),
+    (40, 'Secure email', FALSE, 4),
+
+    (41, 'Physically destroy or securely erase via software', TRUE, 1),
+    (41, 'Throw in the trash', FALSE, 2),
+    (41, 'Leave on the desk', FALSE, 3),
+    (41, 'Save to USB', FALSE, 4),
+
+    (42, 'Use strong passwords, avoid reuse', TRUE, 1),
+    (42, 'Everyone knows all passwords', FALSE, 2),
+    (42, 'Write them on paper', FALSE, 3),
+    (42, 'Use the same password for all accounts', FALSE, 4),
+
+    (43, 'Lock doors and use access cards', TRUE, 1),
+    (43, 'Keep doors open', FALSE, 2),
+    (43, 'Share keys with everyone', FALSE, 3),
+    (43, 'Leave your desk unattended', FALSE, 4),
+
+    (44, 'HTTPS and padlock icon in the browser', TRUE, 1),
+    (44, 'HTTP only', FALSE, 2),
+    (44, 'Website colors', FALSE, 3),
+    (44, 'Large images', FALSE, 4),
+
+    (45, 'Unusual employee behavior such as data leaks', TRUE, 1),
+    (45, 'Employees taking coffee breaks', FALSE, 2),
+    (45, 'Normal email signatures', FALSE, 3),
+    (45, 'Standard work routines', FALSE, 4);
+
