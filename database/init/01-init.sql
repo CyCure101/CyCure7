@@ -1,83 +1,83 @@
-USE cycure_quiz;
+    USE cycure_quiz;
 
     -- USERS TABLE
-CREATE TABLE IF NOT EXISTS users
-(
-    id         INT PRIMARY KEY AUTO_INCREMENT,
-    username   VARCHAR(50) UNIQUE  NOT NULL,
-    email      VARCHAR(100) UNIQUE NOT NULL,
-    password   VARCHAR(255)        NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    CREATE TABLE IF NOT EXISTS users
+    (
+        id         INT PRIMARY KEY AUTO_INCREMENT,
+        username   VARCHAR(50) UNIQUE  NOT NULL,
+        email      VARCHAR(100) UNIQUE NOT NULL,
+        password   VARCHAR(255)        NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
 
--- QUIZZES TABLE
-CREATE TABLE IF NOT EXISTS quizzes
-(
-    id              INT PRIMARY KEY AUTO_INCREMENT,
-    module_type     ENUM ('Customer Service', 'IT-Security', 'General') NOT NULL,
-    title           VARCHAR(200)                                        NOT NULL,
-    description     TEXT,
-    total_questions INT       DEFAULT 0,
-    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    -- QUIZZES TABLE
+    CREATE TABLE IF NOT EXISTS quizzes
+    (
+        id              INT PRIMARY KEY AUTO_INCREMENT,
+        module_type     ENUM ('Customer Service', 'IT-Security', 'General') NOT NULL,
+        title           VARCHAR(200)                                        NOT NULL,
+        description     TEXT,
+        total_questions INT       DEFAULT 0,
+        created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
 
--- QUESTIONS TABLE
-CREATE TABLE IF NOT EXISTS questions
-(
-    id            INT PRIMARY KEY AUTO_INCREMENT,
-    quiz_id       INT  NOT NULL,
-    question_text TEXT NOT NULL,
-    question_type ENUM ('multiple_choice') DEFAULT 'multiple_choice',
-    FOREIGN KEY (quiz_id) REFERENCES quizzes (id) ON DELETE CASCADE
+    -- QUESTIONS TABLE
+    CREATE TABLE IF NOT EXISTS questions
+    (
+        id            INT PRIMARY KEY AUTO_INCREMENT,
+        quiz_id       INT  NOT NULL,
+        question_text TEXT NOT NULL,
+        question_type ENUM ('multiple_choice') DEFAULT 'multiple_choice',
+        FOREIGN KEY (quiz_id) REFERENCES quizzes (id) ON DELETE CASCADE
     );
 
--- ANSWERS TABLE
-CREATE TABLE IF NOT EXISTS answers
-(
-    id           INT PRIMARY KEY AUTO_INCREMENT,
-    question_id  INT  NOT NULL,
-    answer_text  TEXT NOT NULL,
-    is_correct   BOOLEAN DEFAULT FALSE,
-    answer_order INT  NOT NULL CHECK (answer_order BETWEEN 1 AND 4),
-    FOREIGN KEY (question_id) REFERENCES questions (id) ON DELETE CASCADE
+    -- ANSWERS TABLE
+    CREATE TABLE IF NOT EXISTS answers
+    (
+        id           INT PRIMARY KEY AUTO_INCREMENT,
+        question_id  INT  NOT NULL,
+        answer_text  TEXT NOT NULL,
+        is_correct   BOOLEAN DEFAULT FALSE,
+        answer_order INT  NOT NULL CHECK (answer_order BETWEEN 1 AND 4),
+        FOREIGN KEY (question_id) REFERENCES questions (id) ON DELETE CASCADE
     );
 
--- USER ATTEMPTS TABLE
-CREATE TABLE IF NOT EXISTS user_attempts
-(
-    id              INT PRIMARY KEY AUTO_INCREMENT,
-    user_id         INT NOT NULL,
-    quiz_id         INT NOT NULL,
-    score           INT       DEFAULT 0,
-    total_questions INT       DEFAULT 0,
-    completed_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
-    FOREIGN KEY (quiz_id) REFERENCES quizzes (id) ON DELETE CASCADE
+    -- USER ATTEMPTS TABLE
+    CREATE TABLE IF NOT EXISTS user_attempts
+    (
+        id              INT PRIMARY KEY AUTO_INCREMENT,
+        user_id         INT NOT NULL,
+        quiz_id         INT NOT NULL,
+        score           INT       DEFAULT 0,
+        total_questions INT       DEFAULT 0,
+        completed_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
+        FOREIGN KEY (quiz_id) REFERENCES quizzes (id) ON DELETE CASCADE
     );
 
--- USER RESPONSES TABLE
-CREATE TABLE IF NOT EXISTS user_responses
-(
-    id                 INT PRIMARY KEY AUTO_INCREMENT,
-    attempt_id         INT NOT NULL,
-    question_id        INT NOT NULL,
-    selected_answer_id INT NOT NULL,
-    is_correct         BOOLEAN DEFAULT FALSE,
-    FOREIGN KEY (attempt_id) REFERENCES user_attempts (id) ON DELETE CASCADE,
-    FOREIGN KEY (question_id) REFERENCES questions (id) ON DELETE CASCADE,
-    FOREIGN KEY (selected_answer_id) REFERENCES answers (id) ON DELETE CASCADE
+    -- USER RESPONSES TABLE
+    CREATE TABLE IF NOT EXISTS user_responses
+    (
+        id                 INT PRIMARY KEY AUTO_INCREMENT,
+        attempt_id         INT NOT NULL,
+        question_id        INT NOT NULL,
+        selected_answer_id INT NOT NULL,
+        is_correct         BOOLEAN DEFAULT FALSE,
+        FOREIGN KEY (attempt_id) REFERENCES user_attempts (id) ON DELETE CASCADE,
+        FOREIGN KEY (question_id) REFERENCES questions (id) ON DELETE CASCADE,
+        FOREIGN KEY (selected_answer_id) REFERENCES answers (id) ON DELETE CASCADE
     );
 
--- QUIZZES
-INSERT INTO quizzes (module_type, title, description, total_questions)
-VALUES
-    ('Customer Service', 'Basic Customer Service Quiz', 'Test your customer service knowledge', 15),
-    ('IT-Security', 'Cybersecurity Fundamentals', 'Basic cybersecurity concepts and best practices', 15),
-    ('General', 'General Security Awareness', 'General security awareness questions', 15);
+    -- QUIZZES
+    INSERT INTO quizzes (module_type, title, description, total_questions)
+    VALUES
+        ('Customer Service', 'Basic Customer Service Quiz', 'Test your customer service knowledge', 15),
+        ('IT-Security', 'Cybersecurity Fundamentals', 'Basic cybersecurity concepts and best practices', 15),
+        ('General', 'General Security Awareness', 'General security awareness questions', 15);
 
--- QUESTIONS (ENGLISH)
-INSERT INTO questions (quiz_id, question_text)
-VALUES
+    -- QUESTIONS (ENGLISH)
+    INSERT INTO questions (quiz_id, question_text)
+    VALUES
     -- Customer Service (15)
     (1, 'What is important to consider when handling customers\' personal data?'),
     (1, 'Which of the following is an example of strong authentication?'),
@@ -359,3 +359,4 @@ VALUES
     (45, 'Employees taking coffee breaks', FALSE, 2),
     (45, 'Normal email signatures', FALSE, 3),
     (45, 'Standard work routines', FALSE, 4);
+
