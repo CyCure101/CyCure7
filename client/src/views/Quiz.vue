@@ -204,8 +204,9 @@ export default {
         const response = await apiService.submitQuiz(route.params.id, answers)
         
         if (response.success) {
-          // Navigate to results page
-          router.push(`/quiz/${route.params.id}/results/${response.results.attemptId}`)
+          // Navigate to results page, include summary in query for display
+          const { attemptId, score, totalQuestions, correctCount } = response.results
+          router.push(`/quiz/${route.params.id}/results/${attemptId}?score=${score}&total=${totalQuestions}&correct=${correctCount}`)
         } else {
           error.value = response.message || 'Failed to submit quiz'
         }
