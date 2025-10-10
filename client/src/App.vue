@@ -106,8 +106,9 @@ export default {
 
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background-color: #f5f5f5;
+  background: linear-gradient(135deg, #ffffff 0%, #f0f4f8 50%, #d9e2ec 100%);
   min-height: 100vh;
+  background-attachment: fixed;
 }
 
 #app {
