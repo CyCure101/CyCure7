@@ -11,6 +11,48 @@
         </button>
       </div>
 
+      <!-- Overall Progress Card -->
+      <div class="progress-overview" v-if="quizzes.length > 0">
+        <div class="progress-header">
+          <h2>📊 Your Progress</h2>
+        </div>
+        <div class="progress-stats">
+          <div class="stat-card">
+            <div class="stat-icon">📚</div>
+            <div class="stat-info">
+              <div class="stat-value">{{ completedTheoryCount }}</div>
+              <div class="stat-label">Theories Completed</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">🎯</div>
+            <div class="stat-info">
+              <div class="stat-value">{{ completedQuizzesCount }}</div>
+              <div class="stat-label">Quizzes Available</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">⭐</div>
+            <div class="stat-info">
+              <div class="stat-value">{{ overallPercentage }}%</div>
+              <div class="stat-label">Overall Progress</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">{{ streakIcon }}</div>
+            <div class="stat-info">
+              <div class="stat-value">{{ totalAttempts }}</div>
+              <div class="stat-label">Total Attempts</div>
+            </div>
+          </div>
+        </div>
+        <div class="progress-bar-container">
+          <div class="progress-bar" :style="{ width: overallPercentage + '%' }">
+            <span class="progress-text">{{ overallPercentage }}%</span>
+          </div>
+        </div>
+      </div>
+
       <div v-if="loading" class="loading">
         <p>Loading quizzes...</p>
       </div>
@@ -82,10 +124,10 @@
 </template>
 
 <script>
-import {ref, onMounted} from 'vue'
+import {ref, onMounted, computed} from 'vue'
 import {useRouter} from 'vue-router'
 import apiService from '../services/apiService'
-import {isLoggedIn} from '../../auth'
+import {isLoggedIn, currentUser} from '../../auth'
 
 export default {
   name: 'Home',
@@ -96,12 +138,39 @@ export default {
     const error = ref('')
     const completedTheory = ref({})
     const showResetModal = ref(false)
+    const userAttempts = ref([])
 
     // 🔐 Authentication Check
     if (!isLoggedIn.value) {
       router.replace('/login')
       return {}
     }
+
+    // 📊 Computed Progress Stats
+    const completedTheoryCount = computed(() => {
+      return Object.values(completedTheory.value).filter(Boolean).length
+    })
+
+    const completedQuizzesCount = computed(() => {
+      return completedTheoryCount.value
+    })
+
+    const overallPercentage = computed(() => {
+      if (quizzes.value.length === 0) return 0
+      return Math.round((completedTheoryCount.value / quizzes.value.length) * 100)
+    })
+
+    const totalAttempts = computed(() => {
+      return userAttempts.value.length
+    })
+
+    const streakIcon = computed(() => {
+      const count = totalAttempts.value
+      if (count === 0) return '🌱'
+      if (count < 5) return '🔥'
+      if (count < 10) return '⚡'
+      return '🏆'
+    })
 
     // 📦 Hämta quiz-data från backend
     const fetchQuizzes = async () => {
@@ -118,6 +187,21 @@ export default {
         error.value = 'Error loading quizzes: ' + (err.response?.data?.message || err.message)
       } finally {
         loading.value = false
+      }
+    }
+
+    // 📊 Hämta användarens försök
+    const fetchUserAttempts = async () => {
+      try {
+        const userId = currentUser.value.id
+        if (userId) {
+          const data = await apiService.getUserAttempts(userId)
+          if (data?.success) {
+            userAttempts.value = data.attempts || []
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching attempts:', err)
       }
     }
 
@@ -152,6 +236,7 @@ export default {
 
     onMounted(() => {
       fetchQuizzes()
+      fetchUserAttempts()
       const saved = JSON.parse(localStorage.getItem('completedTheory') || '{}')
       completedTheory.value = saved
     })
@@ -164,7 +249,12 @@ export default {
       startQuiz,
       completedTheory,
       showResetModal,
-      resetProgress
+      resetProgress,
+      completedTheoryCount,
+      completedQuizzesCount,
+      overallPercentage,
+      totalAttempts,
+      streakIcon
     }
   }
 }
@@ -305,10 +395,12 @@ export default {
   color: white;
 }
 
+
 .btn-secondary:hover {
-  background-color: #25570d;
+  background-color: #2c791a;
   transform: translateY(-2px);
 }
+
 
 .btn:disabled {
   background-color: #bdc3c7;
@@ -450,5 +542,134 @@ export default {
   .modal-content {
     padding: 1.5rem;
   }
+
+  .progress-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Progress Overview Styles */
+.progress-overview {
+  background: white;
+  border-radius: 16px;
+  padding: 2rem;
+  margin: 2rem 0;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.progress-header {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.progress-header h2 {
+  color: #2c3e50;
+  font-size: 1.8rem;
+  margin: 0;
+}
+
+.progress-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.stat-card {
+  background: linear-gradient(135deg, #f6f9fc 0%, #e9eff5 100%);
+  border-radius: 12px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.stat-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  border-color: #3498db;
+}
+
+.stat-icon {
+  font-size: 2.5rem;
+  line-height: 1;
+}
+
+.stat-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.stat-value {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #2c3e50;
+  line-height: 1;
+  margin-bottom: 0.5rem;
+}
+
+.stat-label {
+  font-size: 0.9rem;
+  color: #7f8c8d;
+  font-weight: 500;
+}
+
+.progress-bar-container {
+  background: #e9ecef;
+  border-radius: 12px;
+  height: 40px;
+  overflow: hidden;
+  position: relative;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.progress-bar {
+  background: linear-gradient(135deg, #3498db 0%, #2ecc71 100%);
+  height: 100%;
+  transition: width 1s ease-out;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.progress-bar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.3),
+      transparent
+  );
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.progress-text {
+  color: white;
+  font-weight: 700;
+  font-size: 1.1rem;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  position: relative;
+  z-index: 1;
 }
 </style>
