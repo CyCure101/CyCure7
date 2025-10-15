@@ -33,6 +33,11 @@ const routes = [
         component: Results
     },
     {
+        path: '/quiz/:id/theory',
+        name: 'Teori',
+        component: () => import('../views/Theori.vue')
+    },
+    {
         path: '/MyResults',
         name: 'MyResults',
         component: MyResults
@@ -46,3 +51,5 @@ const router = createRouter({
 })
 
 export default router
+
+
