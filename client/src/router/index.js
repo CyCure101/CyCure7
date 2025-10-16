@@ -35,7 +35,7 @@ const routes = [
     {
         path: '/quiz/:id/theory',
         name: 'Teori',
-        component: () => import('../views/Theori.vue')
+        component: () => import('../views/Theory.vue')
     },
     {
         path: '/MyResults',
