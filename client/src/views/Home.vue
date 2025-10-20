@@ -124,10 +124,10 @@
 </template>
 
 <script>
-import { ref, computed, onMounted, watch } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import {ref, computed, onMounted, watch} from 'vue'
+import {useRouter, useRoute} from 'vue-router'
 import apiService from '../services/apiService'
-import { isLoggedIn, currentUser } from '../../auth'
+import {isLoggedIn, currentUser} from '../../auth'
 
 export default {
   setup() {
@@ -198,18 +198,12 @@ export default {
       }
     }
 
-    // --- 🧠 FETCH USER PROGRESS FROM SERVER ---
     const fetchUserProgress = async () => {
       try {
         const userId = currentUser.value?.id
-        if (!userId) {
-          console.log('No userId found') // ✅ DEBUG
-          return
-        }
+        if (!userId) return
 
-        console.log('Fetching progress for user:', userId) // ✅ DEBUG
         const response = await apiService.getUserProgress(userId)
-        console.log('Progress response:', response) // ✅ DEBUG
 
         if (response.success) {
           const progress = response.progress || []
@@ -217,7 +211,6 @@ export default {
           progress.forEach((item) => {
             completedTheory.value[item.quiz_id] = !!item.theory_completed
           })
-          console.log('Completed theory:', completedTheory.value) // ✅ DEBUG
         }
       } catch (err) {
         console.error('Error loading progress:', err)
@@ -232,18 +225,12 @@ export default {
           return
         }
 
-        console.log('Resetting progress for user:', userId) // ✅ DEBUG
-
         const response = await apiService.resetUserProgress(userId)
 
-        console.log('Reset response:', response) // ✅ DEBUG
-
-        // ✅ FIX: Kolla response direkt
         if (response.success) {
           completedTheory.value = {}
           showResetModal.value = false
 
-          // Refresh data
           await fetchUserProgress()
           await fetchUserAttempts()
 
@@ -251,66 +238,63 @@ export default {
         } else {
           alert('❌ Failed to reset: ' + (response.message || 'Unknown error'))
         }
-
       } catch (error) {
         console.error('Network error:', error)
         alert('❌ Network error: ' + error.message)
       }
     }
 
-      // --- 👀 AUTH WATCHER ---
-      watch(
-          isLoggedIn,
-          async (val) => {
-            if (val) {
-              await fetchQuizzes()
-              await fetchUserAttempts()
-              await fetchUserProgress()
-            } else {
-              router.replace('/login')
-            }
-          },
-          { immediate: true }
-      )
-
-      // ✅ WATCH ROUTE CHANGES - Reload progress when returning to home
-      watch(
-          () => route.path,
-          async (newPath) => {
-            if (newPath === '/' && isLoggedIn.value) {
-              console.log('Route changed to home, refreshing progress...') // ✅ DEBUG
-              await fetchUserProgress()
-              await fetchUserAttempts()
-            }
+    // --- 👀 WATCHERS ---
+    watch(
+        isLoggedIn,
+        async (val) => {
+          if (val) {
+            await fetchQuizzes()
+            await fetchUserAttempts()
+            await fetchUserProgress()
+          } else {
+            router.replace('/login')
           }
-      )
+        },
+        {immediate: true}
+    )
 
-      // --- 🏁 MOUNT ---
-      onMounted(async () => {
-        const userId = currentUser.value?.id
-        if (userId) {
-          await fetchUserProgress()
+    watch(
+        () => route.path,
+        async (newPath) => {
+          if (newPath === '/' && isLoggedIn.value) {
+            await fetchUserProgress()
+            await fetchUserAttempts()
+          }
         }
-      })
+    )
 
-      return {
-        authChecked,
-        quizzes,
-        loading,
-        error,
-        completedTheory,
-        showResetModal,
-        completedTheoryCount,
-        completedQuizzesCount,
-        overallPercentage,
-        totalAttempts,
-        streakIcon,
-        goToTheory,
-        startQuiz,
-        resetProgress,
+    // --- 🏁 MOUNT ---
+    onMounted(async () => {
+      const userId = currentUser.value?.id
+      if (userId) {
+        await fetchUserProgress()
       }
-    },
-  }
+    })
+
+    return {
+      authChecked,
+      quizzes,
+      loading,
+      error,
+      completedTheory,
+      showResetModal,
+      completedTheoryCount,
+      completedQuizzesCount,
+      overallPercentage,
+      totalAttempts,
+      streakIcon,
+      goToTheory,
+      startQuiz,
+      resetProgress,
+    }
+  },
+}
 </script>
 
 

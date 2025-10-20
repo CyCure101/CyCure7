@@ -82,7 +82,6 @@ router.get('/users', (req, res) => {
 });
 
 // ================= USER PROGRESS =================
-// Get progress for a specific user
 router.get('/users/:id/progress', (req, res) => {
     if (!req.session.userId)
         return res.status(401).json({success: false, message: 'Not logged in'});
@@ -101,13 +100,12 @@ router.get('/users/:id/progress', (req, res) => {
     });
 });
 
-// Save/mark theory completed for a quiz for the user
 router.post('/users/:id/progress', (req, res) => {
     if (!req.session.userId)
         return res.status(401).json({success: false, message: 'Not logged in'});
 
     const userId = parseInt(req.params.id, 10);
-    const { quizId } = req.body || {};
+    const {quizId} = req.body || {};
 
     if (!Number.isInteger(userId))
         return res.status(400).json({success: false, message: 'Invalid user id'});
@@ -143,7 +141,6 @@ router.post('/users/:id/progress', (req, res) => {
     });
 });
 
-// Reset user progress and attempts (with cascade for responses)
 router.delete('/users/:id/progress', (req, res) => {
     if (!req.session.userId)
         return res.status(401).json({success: false, message: 'Not logged in'});
@@ -151,22 +148,16 @@ router.delete('/users/:id/progress', (req, res) => {
     const userId = parseInt(req.params.id, 10);
     if (!Number.isInteger(userId))
         return res.status(400).json({success: false, message: 'Invalid user id'});
+
     if (userId !== req.session.userId)
         return res.status(403).json({success: false, message: 'Forbidden'});
 
-    // Simple sequential deletes (attempts delete cascades user_responses)
-    const deleteProgress = 'DELETE FROM user_progress WHERE user_id = ?';
-    const deleteAttempts = 'DELETE FROM user_attempts WHERE user_id = ?';
-
-    db.query(deleteProgress, [userId], (err) => {
-        if (err) return res.status(500).json({success: false, message: 'Failed to reset progress'});
-        db.query(deleteAttempts, [userId], (err2) => {
-            if (err2) return res.status(500).json({success: false, message: 'Failed to reset attempts'});
-            res.json({success: true, message: 'Progress and attempts reset'});
-        });
+    const sql = 'DELETE FROM user_progress WHERE user_id = ?';
+    db.query(sql, [userId], (err) => {
+        if (err) return res.status(500).json({success: false, message: 'Database error'});
+        res.json({success: true, message: 'Progress reset successfully'});
     });
 });
-
 
 // ================= QUIZZES =================
 router.get('/quizzes', (req, res) => {
@@ -322,7 +313,7 @@ router.get('/users/:id/attempts', (req, res) => {
         return res.status(403).json({success: false, message: 'Forbidden'});
 
     const sql = `
-        SELECT ua.id AS   attempt_id,
+        SELECT ua.id   AS attempt_id,
                ua.user_id,
                ua.quiz_id,
                q.title AS quiz_title,
