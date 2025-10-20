@@ -125,29 +125,31 @@
 
 <script>
 import { ref, computed, onMounted, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import apiService from '../services/apiService'
 import { isLoggedIn, currentUser } from '../../auth'
 
 export default {
   setup() {
     const router = useRouter()
+    const route = useRoute()
     const authChecked = ref(false)
     const quizzes = ref([])
     const loading = ref(true)
     const error = ref('')
-
     const completedTheory = ref({})
     const showResetModal = ref(false)
     const userAttempts = ref([])
 
-    // Computed
+    // --- 🧮 Computed ---
     const completedTheoryCount = computed(() =>
         Object.values(completedTheory.value).filter(Boolean).length
     )
     const completedQuizzesCount = computed(() => completedTheoryCount.value)
     const overallPercentage = computed(() =>
-        quizzes.value.length ? Math.round((completedTheoryCount.value / quizzes.value.length) * 100) : 0
+        quizzes.value.length
+            ? Math.round((completedTheoryCount.value / quizzes.value.length) * 100)
+            : 0
     )
     const totalAttempts = computed(() => userAttempts.value.length)
     const streakIcon = computed(() => {
@@ -158,7 +160,7 @@ export default {
       return '🏆'
     })
 
-    // Navigation
+    // --- 🚀 Navigation ---
     const goToTheory = (quizId) => router.push(`/quiz/${quizId}/theory`)
     const startQuiz = (quizId) => {
       if (!completedTheory.value[quizId]) {
@@ -168,16 +170,7 @@ export default {
       router.push(`/quiz/${quizId}`)
     }
 
-    // Reset
-    const resetProgress = () => {
-      localStorage.removeItem('completedTheory')
-      completedTheory.value = {}
-      localStorage.removeItem('quizResults')
-      showResetModal.value = false
-      alert('✅ Progress reset successfully! All quizzes are now locked.')
-    }
-
-    // Fetch quizzes
+    // --- 🧩 FETCH FUNCTIONS ---
     const fetchQuizzes = async () => {
       try {
         loading.value = true
@@ -193,7 +186,6 @@ export default {
       }
     }
 
-    // Fetch user attempts
     const fetchUserAttempts = async () => {
       try {
         const userId = currentUser.value?.id
@@ -206,40 +198,121 @@ export default {
       }
     }
 
-    // Watch auth
-    watch(isLoggedIn, (val) => {
-      if (val) {
-        fetchQuizzes()
-        fetchUserAttempts()
-      } else {
-        router.replace('/login')
+    // --- 🧠 FETCH USER PROGRESS FROM SERVER ---
+    const fetchUserProgress = async () => {
+      try {
+        const userId = currentUser.value?.id
+        if (!userId) {
+          console.log('No userId found') // ✅ DEBUG
+          return
+        }
+
+        console.log('Fetching progress for user:', userId) // ✅ DEBUG
+        const response = await apiService.getUserProgress(userId)
+        console.log('Progress response:', response) // ✅ DEBUG
+
+        if (response.success) {
+          const progress = response.progress || []
+          completedTheory.value = {}
+          progress.forEach((item) => {
+            completedTheory.value[item.quiz_id] = !!item.theory_completed
+          })
+          console.log('Completed theory:', completedTheory.value) // ✅ DEBUG
+        }
+      } catch (err) {
+        console.error('Error loading progress:', err)
       }
-    }, { immediate: true })
-
-    // Load saved progress
-    onMounted(() => {
-      completedTheory.value = JSON.parse(localStorage.getItem('completedTheory') || '{}')
-    })
-
-    return {
-      authChecked,
-      quizzes,
-      loading,
-      error,
-      completedTheory,
-      showResetModal,
-      completedTheoryCount,
-      completedQuizzesCount,
-      overallPercentage,
-      totalAttempts,
-      streakIcon,
-      goToTheory,
-      startQuiz,
-      resetProgress
     }
+
+    const resetProgress = async () => {
+      try {
+        const userId = currentUser.value?.id
+        if (!userId) {
+          alert('You must be logged in')
+          return
+        }
+
+        console.log('Resetting progress for user:', userId) // ✅ DEBUG
+
+        const response = await apiService.resetUserProgress(userId)
+
+        console.log('Reset response:', response) // ✅ DEBUG
+
+        // ✅ FIX: Kolla response direkt
+        if (response.success) {
+          completedTheory.value = {}
+          showResetModal.value = false
+
+          // Refresh data
+          await fetchUserProgress()
+          await fetchUserAttempts()
+
+          alert('✅ Progress reset successfully!')
+        } else {
+          alert('❌ Failed to reset: ' + (response.message || 'Unknown error'))
+        }
+
+      } catch (error) {
+        console.error('Network error:', error)
+        alert('❌ Network error: ' + error.message)
+      }
+    }
+
+      // --- 👀 AUTH WATCHER ---
+      watch(
+          isLoggedIn,
+          async (val) => {
+            if (val) {
+              await fetchQuizzes()
+              await fetchUserAttempts()
+              await fetchUserProgress()
+            } else {
+              router.replace('/login')
+            }
+          },
+          { immediate: true }
+      )
+
+      // ✅ WATCH ROUTE CHANGES - Reload progress when returning to home
+      watch(
+          () => route.path,
+          async (newPath) => {
+            if (newPath === '/' && isLoggedIn.value) {
+              console.log('Route changed to home, refreshing progress...') // ✅ DEBUG
+              await fetchUserProgress()
+              await fetchUserAttempts()
+            }
+          }
+      )
+
+      // --- 🏁 MOUNT ---
+      onMounted(async () => {
+        const userId = currentUser.value?.id
+        if (userId) {
+          await fetchUserProgress()
+        }
+      })
+
+      return {
+        authChecked,
+        quizzes,
+        loading,
+        error,
+        completedTheory,
+        showResetModal,
+        completedTheoryCount,
+        completedQuizzesCount,
+        overallPercentage,
+        totalAttempts,
+        streakIcon,
+        goToTheory,
+        startQuiz,
+        resetProgress,
+      }
+    },
   }
-}
 </script>
+
 
 <style scoped>
 .home {

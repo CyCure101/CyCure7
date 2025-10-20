@@ -23,7 +23,7 @@
           ></iframe>
         </div>
         <label class="checkbox-label">
-          <input type="checkbox" v-model="videoWatched" />
+          <input type="checkbox" v-model="videoWatched"/>
           I have watched the video
         </label>
       </div>
@@ -80,7 +80,8 @@
             <p v-if="quizAnswers[currentSection] === section.quiz.correct" class="feedback success">
               ✅ Correct! {{ section.quiz.feedback }}
             </p>
-            <p v-else-if="quizAnswers[currentSection] !== null && quizAnswers[currentSection] !== undefined" class="feedback error">
+            <p v-else-if="quizAnswers[currentSection] !== null && quizAnswers[currentSection] !== undefined"
+               class="feedback error">
               ❌ Not quite. Try another answer!
             </p>
           </div>
@@ -124,8 +125,10 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, reactive } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import {ref, computed, onMounted, reactive} from 'vue'
+import {useRoute, useRouter} from 'vue-router'
+import apiService from '../services/apiService'
+import {currentUser} from '../../auth'
 
 const route = useRoute()
 const router = useRouter()
@@ -414,18 +417,44 @@ const previousSection = () => {
   }
 }
 
-const completeTheory = () => {
+const completeTheory = async () => {
   if (!allSectionsCompleted.value) {
     alert('Please complete all sections before finishing!')
     return
   }
 
   const quizId = route.params.id
-  const completed = JSON.parse(localStorage.getItem('completedTheory') || '{}')
-  completed[quizId] = true
-  localStorage.setItem('completedTheory', JSON.stringify(completed))
-  alert('🎉 Theory completed! You can now start the quiz.')
-  router.push('/')
+
+  try {
+    const userId = currentUser.value?.id
+
+    if (!userId) {
+      alert('You must be logged in to save progress.')
+      router.push('/login')
+      return
+    }
+
+    console.log('Saving progress:', {userId, quizId}) // ✅ DEBUG
+
+    // Spara progress
+    const response = await apiService.saveUserProgress(userId, quizId)
+
+    console.log('Save progress response:', response) // ✅ DEBUG
+
+    // ✅ FIX: Kolla response direkt, inte i catch
+    if (response.success) {
+      alert('🎉 Theory completed! You can now start the quiz.')
+      router.push('/')
+    } else {
+      // Om success: false
+      alert('❌ Failed to save: ' + (response.message || 'Unknown error'))
+    }
+
+  } catch (error) {
+    // Detta körs bara vid network errors eller axios errors
+    console.error('Network error:', error)
+    alert('❌ Network error: ' + error.message)
+  }
 }
 </script>
 

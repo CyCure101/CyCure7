@@ -10,6 +10,17 @@
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
 
+    CREATE TABLE user_progress (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT NOT NULL,
+        quiz_id INT NOT NULL,
+        theory_completed BOOLEAN DEFAULT FALSE,
+        FOREIGN KEY (user_id) REFERENCES users(id),
+        FOREIGN KEY (quiz_id) REFERENCES quizzes(id)
+    );
+
+
+
     -- QUIZZES TABLE
     CREATE TABLE IF NOT EXISTS quizzes
     (
