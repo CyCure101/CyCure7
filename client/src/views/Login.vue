@@ -2,39 +2,39 @@
   <div class="auth-container">
     <div class="auth-card">
       <h2>Login</h2>
-      
+
       <form @submit.prevent="handleLogin" class="auth-form">
         <div class="form-group">
           <label for="email">Email:</label>
-          <input 
-            type="email" 
-            id="email" 
-            v-model="form.email" 
-            required 
+          <input
+            type="email"
+            id="email"
+            v-model="form.email"
+            required
             class="form-input"
           />
         </div>
-        
+
         <div class="form-group">
           <label for="password">Password:</label>
-          <input 
-            type="password" 
-            id="password" 
-            v-model="form.password" 
-            required 
+          <input
+            type="password"
+            id="password"
+            v-model="form.password"
+            required
             class="form-input"
           />
         </div>
-        
+
         <button type="submit" class="btn btn-primary" :disabled="loading">
           {{ loading ? 'Logging in...' : 'Login' }}
         </button>
       </form>
-      
+
       <div v-if="error" class="error-message">
         {{ error }}
       </div>
-      
+
       <div class="auth-footer">
         <p>Don't have an account? <router-link to="/register">Register here</router-link></p>
       </div>

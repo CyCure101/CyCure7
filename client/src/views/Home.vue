@@ -124,15 +124,16 @@
 </template>
 
 <script>
-import {ref, onMounted, computed} from 'vue'
-import {useRouter} from 'vue-router'
+import {ref, computed, onMounted, watch} from 'vue'
+import {useRouter, useRoute} from 'vue-router'
 import apiService from '../services/apiService'
 import {isLoggedIn, currentUser} from '../../auth'
 
 export default {
-  name: 'Home',
   setup() {
     const router = useRouter()
+    const route = useRoute()
+    const authChecked = ref(false)
     const quizzes = ref([])
     const loading = ref(true)
     const error = ref('')
@@ -140,30 +141,17 @@ export default {
     const showResetModal = ref(false)
     const userAttempts = ref([])
 
-    // 🔐 Authentication Check
-    if (!isLoggedIn.value) {
-      router.replace('/login')
-      return {}
-    }
-
-    // 📊 Computed Progress Stats
-    const completedTheoryCount = computed(() => {
-      return Object.values(completedTheory.value).filter(Boolean).length
-    })
-
-    const completedQuizzesCount = computed(() => {
-      return completedTheoryCount.value
-    })
-
-    const overallPercentage = computed(() => {
-      if (quizzes.value.length === 0) return 0
-      return Math.round((completedTheoryCount.value / quizzes.value.length) * 100)
-    })
-
-    const totalAttempts = computed(() => {
-      return userAttempts.value.length
-    })
-
+    // --- 🧮 Computed ---
+    const completedTheoryCount = computed(() =>
+        Object.values(completedTheory.value).filter(Boolean).length
+    )
+    const completedQuizzesCount = computed(() => completedTheoryCount.value)
+    const overallPercentage = computed(() =>
+        quizzes.value.length
+            ? Math.round((completedTheoryCount.value / quizzes.value.length) * 100)
+            : 0
+    )
+    const totalAttempts = computed(() => userAttempts.value.length)
     const streakIcon = computed(() => {
       const count = totalAttempts.value
       if (count === 0) return '🌱'
@@ -172,93 +160,143 @@ export default {
       return '🏆'
     })
 
-    // 📦 Hämta quiz-data från backend
-    const fetchQuizzes = async () => {
-      try {
-        loading.value = true
-        error.value = ''
-        const response = await apiService.getQuizzes()
-        if (response.success) {
-          quizzes.value = response.quizzes
-        } else {
-          error.value = 'Failed to load quizzes'
-        }
-      } catch (err) {
-        error.value = 'Error loading quizzes: ' + (err.response?.data?.message || err.message)
-      } finally {
-        loading.value = false
-      }
-    }
-
-    // 📊 Hämta användarens försök
-    const fetchUserAttempts = async () => {
-      try {
-        const userId = currentUser.value.id
-        if (userId) {
-          const data = await apiService.getUserAttempts(userId)
-          if (data?.success) {
-            userAttempts.value = data.attempts || []
-          }
-        }
-      } catch (err) {
-        console.error('Error fetching attempts:', err)
-      }
-    }
-
-    // 🚀 Navigera till teori
-    const goToTheory = (quizId) => {
-      router.push(`/quiz/${quizId}/theory`)
-    }
-
+    // --- 🚀 Navigation ---
+    const goToTheory = (quizId) => router.push(`/quiz/${quizId}/theory`)
     const startQuiz = (quizId) => {
       if (!completedTheory.value[quizId]) {
-        alert('Please complete the theory section first!')
+        alert('Please complete the theory first!')
         return
       }
       router.push(`/quiz/${quizId}`)
     }
 
-    // 🔄 Reset Progress
-    const resetProgress = () => {
-      // Clear completed theory
-      localStorage.removeItem('completedTheory')
-      completedTheory.value = {}
-
-      // Clear quiz results (if you store them)
-      localStorage.removeItem('quizResults')
-
-      // Close modal
-      showResetModal.value = false
-
-      // Show success message
-      alert('✅ Progress reset successfully! All quizzes are now locked.')
+    // --- 🧩 FETCH FUNCTIONS ---
+    const fetchQuizzes = async () => {
+      try {
+        loading.value = true
+        error.value = ''
+        const response = await apiService.getQuizzes()
+        quizzes.value = response.quizzes || []
+      } catch (err) {
+        error.value = 'Failed to load quizzes'
+        console.error(err)
+      } finally {
+        loading.value = false
+        authChecked.value = true
+      }
     }
 
-    onMounted(() => {
-      fetchQuizzes()
-      fetchUserAttempts()
-      const saved = JSON.parse(localStorage.getItem('completedTheory') || '{}')
-      completedTheory.value = saved
+    const fetchUserAttempts = async () => {
+      try {
+        const userId = currentUser.value?.id
+        if (userId) {
+          const data = await apiService.getUserAttempts(userId)
+          userAttempts.value = data?.attempts || []
+        }
+      } catch (err) {
+        console.error(err)
+      }
+    }
+
+    const fetchUserProgress = async () => {
+      try {
+        const userId = currentUser.value?.id
+        if (!userId) return
+
+        const response = await apiService.getUserProgress(userId)
+
+        if (response.success) {
+          const progress = response.progress || []
+          completedTheory.value = {}
+          progress.forEach((item) => {
+            completedTheory.value[item.quiz_id] = !!item.theory_completed
+          })
+        }
+      } catch (err) {
+        console.error('Error loading progress:', err)
+      }
+    }
+
+    const resetProgress = async () => {
+      try {
+        const userId = currentUser.value?.id
+        if (!userId) {
+          alert('You must be logged in')
+          return
+        }
+
+        const response = await apiService.resetUserProgress(userId)
+
+        if (response.success) {
+          completedTheory.value = {}
+          showResetModal.value = false
+
+          await fetchUserProgress()
+          await fetchUserAttempts()
+
+          alert('✅ Progress reset successfully!')
+        } else {
+          alert('❌ Failed to reset: ' + (response.message || 'Unknown error'))
+        }
+      } catch (error) {
+        console.error('Network error:', error)
+        alert('❌ Network error: ' + error.message)
+      }
+    }
+
+    // --- 👀 WATCHERS ---
+    watch(
+        isLoggedIn,
+        async (val) => {
+          if (val) {
+            await fetchQuizzes()
+            await fetchUserAttempts()
+            await fetchUserProgress()
+          } else {
+            router.replace('/login')
+          }
+        },
+        {immediate: true}
+    )
+
+    watch(
+        () => route.path,
+        async (newPath) => {
+          if (newPath === '/' && isLoggedIn.value) {
+            await fetchUserProgress()
+            await fetchUserAttempts()
+          }
+        }
+    )
+
+    // --- 🏁 MOUNT ---
+    onMounted(async () => {
+      const userId = currentUser.value?.id
+      if (userId) {
+        await fetchUserProgress()
+      }
     })
 
     return {
+      authChecked,
       quizzes,
       loading,
       error,
-      goToTheory,
-      startQuiz,
       completedTheory,
       showResetModal,
-      resetProgress,
       completedTheoryCount,
       completedQuizzesCount,
       overallPercentage,
       totalAttempts,
-      streakIcon
+      streakIcon,
+      goToTheory,
+      startQuiz,
+      resetProgress,
     }
-  }
+  },
 }
 </script>
+
 
 <style scoped>
 .home {
