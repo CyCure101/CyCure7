@@ -81,6 +81,84 @@ router.get('/users', (req, res) => {
     });
 });
 
+// ================= USER PROGRESS =================
+router.get('/users/:id/progress', (req, res) => {
+    if (!req.session.userId)
+        return res.status(401).json({success: false, message: 'Not logged in'});
+
+    const userId = parseInt(req.params.id, 10);
+    if (!Number.isInteger(userId))
+        return res.status(400).json({success: false, message: 'Invalid user id'});
+
+    if (userId !== req.session.userId)
+        return res.status(403).json({success: false, message: 'Forbidden'});
+
+    const sql = 'SELECT quiz_id, theory_completed FROM user_progress WHERE user_id = ?';
+    db.query(sql, [userId], (err, results) => {
+        if (err) return res.status(500).json({success: false, message: 'Database error'});
+        res.json({success: true, progress: results});
+    });
+});
+
+router.post('/users/:id/progress', (req, res) => {
+    if (!req.session.userId)
+        return res.status(401).json({success: false, message: 'Not logged in'});
+
+    const userId = parseInt(req.params.id, 10);
+    const {quizId} = req.body || {};
+
+    if (!Number.isInteger(userId))
+        return res.status(400).json({success: false, message: 'Invalid user id'});
+    if (userId !== req.session.userId)
+        return res.status(403).json({success: false, message: 'Forbidden'});
+    if (!quizId)
+        return res.status(400).json({success: false, message: 'quizId is required'});
+
+    const quizCheck = 'SELECT id FROM quizzes WHERE id = ?';
+    db.query(quizCheck, [quizId], (err, qres) => {
+        if (err) return res.status(500).json({success: false, message: 'Database error'});
+        if (qres.length === 0)
+            return res.status(404).json({success: false, message: 'Quiz not found'});
+
+        const selectSql = 'SELECT id FROM user_progress WHERE user_id = ? AND quiz_id = ?';
+        db.query(selectSql, [userId, quizId], (err, rows) => {
+            if (err) return res.status(500).json({success: false, message: 'Database error'});
+
+            if (rows.length > 0) {
+                const updateSql = 'UPDATE user_progress SET theory_completed = TRUE WHERE user_id = ? AND quiz_id = ?';
+                db.query(updateSql, [userId, quizId], err => {
+                    if (err) return res.status(500).json({success: false, message: 'Failed to update progress'});
+                    res.json({success: true, message: 'Progress updated'});
+                });
+            } else {
+                const insertSql = 'INSERT INTO user_progress (user_id, quiz_id, theory_completed) VALUES (?, ?, TRUE)';
+                db.query(insertSql, [userId, quizId], err => {
+                    if (err) return res.status(500).json({success: false, message: 'Failed to save progress'});
+                    res.json({success: true, message: 'Progress saved'});
+                });
+            }
+        });
+    });
+});
+
+router.delete('/users/:id/progress', (req, res) => {
+    if (!req.session.userId)
+        return res.status(401).json({success: false, message: 'Not logged in'});
+
+    const userId = parseInt(req.params.id, 10);
+    if (!Number.isInteger(userId))
+        return res.status(400).json({success: false, message: 'Invalid user id'});
+
+    if (userId !== req.session.userId)
+        return res.status(403).json({success: false, message: 'Forbidden'});
+
+    const sql = 'DELETE FROM user_progress WHERE user_id = ?';
+    db.query(sql, [userId], (err) => {
+        if (err) return res.status(500).json({success: false, message: 'Database error'});
+        res.json({success: true, message: 'Progress reset successfully'});
+    });
+});
+
 // ================= QUIZZES =================
 router.get('/quizzes', (req, res) => {
     const sql = 'SELECT id, module_type, title, description, total_questions FROM quizzes ORDER BY module_type, id';
@@ -235,7 +313,7 @@ router.get('/users/:id/attempts', (req, res) => {
         return res.status(403).json({success: false, message: 'Forbidden'});
 
     const sql = `
-        SELECT ua.id AS   attempt_id,
+        SELECT ua.id   AS attempt_id,
                ua.user_id,
                ua.quiz_id,
                q.title AS quiz_title,
