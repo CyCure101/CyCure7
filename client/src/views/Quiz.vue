@@ -110,6 +110,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import apiService from '../services/apiService'
+import { currentUser } from '../../auth'
 
 export default {
   name: 'Quiz',

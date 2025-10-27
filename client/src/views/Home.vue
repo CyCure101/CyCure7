@@ -28,7 +28,7 @@
             <div class="stat-icon">🎯</div>
             <div class="stat-info">
               <div class="stat-value">{{ completedQuizzesCount }}</div>
-              <div class="stat-label">Quizzes Available</div>
+              <div class="stat-label">Quizzes Completed</div>
             </div>
           </div>
           <div class="stat-card">
@@ -46,9 +46,14 @@
             </div>
           </div>
         </div>
-        <div class="progress-bar-container">
-          <div class="progress-bar" :style="{ width: overallPercentage + '%' }">
-            <span class="progress-text">{{ overallPercentage }}%</span>
+        <div class="progress-overview" v-if="quizzes.length > 0">
+          <div class="progress-bar-container">
+            <div class="progress-bar" :style="{ width: overallPercentage + '%' }">
+            </div>
+
+            <div class="progress-text-overlay">
+              {{ overallPercentage }}%
+            </div>
           </div>
         </div>
       </div>
@@ -138,6 +143,7 @@ export default {
     const loading = ref(true)
     const error = ref('')
     const completedTheory = ref({})
+    const completedQuizzes = ref({})
     const showResetModal = ref(false)
     const userAttempts = ref([])
 
@@ -145,10 +151,11 @@ export default {
     const completedTheoryCount = computed(() =>
         Object.values(completedTheory.value).filter(Boolean).length
     )
-    const completedQuizzesCount = computed(() => completedTheoryCount.value)
+    const completedQuizzesCount = computed(() =>
+        Object.values(completedQuizzes.value).filter(Boolean).length)
     const overallPercentage = computed(() =>
         quizzes.value.length
-            ? Math.round((completedTheoryCount.value / quizzes.value.length) * 100)
+            ? Math.round((completedQuizzesCount.value / quizzes.value.length) * 100)
             : 0
     )
     const totalAttempts = computed(() => userAttempts.value.length)
@@ -208,8 +215,10 @@ export default {
         if (response.success) {
           const progress = response.progress || []
           completedTheory.value = {}
+          completedQuizzes.value = {}
           progress.forEach((item) => {
             completedTheory.value[item.quiz_id] = !!item.theory_completed
+            completedQuizzes.value[item.quiz_id] = !!item.quiz_completed
           })
         }
       } catch (err) {
@@ -229,6 +238,7 @@ export default {
 
         if (response.success) {
           completedTheory.value = {}
+          completedQuizzes.value = {}
           showResetModal.value = false
 
           await fetchUserProgress()
@@ -296,7 +306,6 @@ export default {
   },
 }
 </script>
-
 
 <style scoped>
 .home {
@@ -670,9 +679,9 @@ export default {
   background: linear-gradient(135deg, #3498db 0%, #2ecc71 100%);
   height: 100%;
   transition: width 1s ease-out;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+
+  /* BORTTAGET: display: flex; align-items: center; justify-content: center; */
+
   position: relative;
   overflow: hidden;
 }
@@ -702,12 +711,20 @@ export default {
   }
 }
 
-.progress-text {
-  color: white;
+/* NY KLASS: Overlay för att visa texten centrerat ovanpå fältet */
+.progress-text-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-weight: 700;
   font-size: 1.1rem;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  position: relative;
-  z-index: 1;
+  z-index: 2;
+  color: #2c3e50; /* Mörk färg som syns väl mot både fylld och tom bakgrund */
+  text-shadow: 0 0 2px rgba(255, 255, 255, 0.5); /* Lätt ljus skugga för kontrast mot fyllningen */
 }
 </style>
