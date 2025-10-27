@@ -18,28 +18,24 @@
         </div>
         <div class="progress-stats">
           <div class="stat-card">
-            <div class="stat-icon">📚</div>
             <div class="stat-info">
               <div class="stat-value">{{ completedTheoryCount }}</div>
               <div class="stat-label">Theories Completed</div>
             </div>
           </div>
           <div class="stat-card">
-            <div class="stat-icon">🎯</div>
             <div class="stat-info">
               <div class="stat-value">{{ completedQuizzesCount }}</div>
               <div class="stat-label">Quizzes Completed</div>
             </div>
           </div>
           <div class="stat-card">
-            <div class="stat-icon">⭐</div>
             <div class="stat-info">
               <div class="stat-value">{{ overallPercentage }}%</div>
               <div class="stat-label">Overall Progress</div>
             </div>
           </div>
           <div class="stat-card">
-            <div class="stat-icon">{{ streakIcon }}</div>
             <div class="stat-info">
               <div class="stat-value">{{ totalAttempts }}</div>
               <div class="stat-label">Total Attempts</div>
