@@ -110,6 +110,7 @@
 import {ref, computed, onMounted} from 'vue'
 import {useRoute, useRouter} from 'vue-router'
 import apiService from '../services/apiService'
+import {currentUser} from '../../auth'
 
 export default {
   name: 'Quiz',
@@ -124,12 +125,10 @@ export default {
     const isLoggedIn = ref(false)
     const isSubmitting = ref(false)
 
-    const showFeedback = ref(false)
-    const isCorrect = ref(null)
-
     const currentQuestionIndex = ref(0)
     const selectedAnswer = ref(null)
-    const userAnswers = ref({}) // Store all user answers
+    const userAnswers = ref({}) // Store all user answers (questionId: selectedAnswerId)
+    const questionResults = ref({}) // Store feedback for each question (questionId: 'correct'/'wrong')
 
     const currentQuestion = computed(() => {
       return questions.value[currentQuestionIndex.value] || {}
@@ -138,6 +137,25 @@ export default {
     const progressPercentage = computed(() => {
       return ((currentQuestionIndex.value + 1) / questions.value.length) * 100
     })
+
+    // NY: Beräknar feedback för den aktuella frågan baserat på sparad data
+    const currentQuestionResult = computed(() => {
+      const questionId = currentQuestion.value.id;
+      // Returnerar 'correct', 'wrong', eller null
+      return questionResults.value[questionId] || null;
+    })
+
+    // NY: Styr om feedback-meddelandet ska visas
+    const showFeedback = computed(() => {
+      // Visa feedback om frågan har ett sparat resultat
+      return !!currentQuestionResult.value;
+    })
+
+    // NY: Styr om feedback-meddelandet ska vara grönt eller rött
+    const isCorrect = computed(() => {
+      return currentQuestionResult.value === 'correct';
+    })
+
 
     const checkAuth = async () => {
       try {
@@ -172,6 +190,7 @@ export default {
         // Initialize user answers
         questions.value.forEach((question, index) => {
           userAnswers.value[question.id] = null
+          questionResults.value[question.id] = null // Initialize results storage
         })
 
       } catch (err) {
@@ -182,7 +201,8 @@ export default {
     }
 
     const selectAnswer = (answerId) => {
-      if (isSubmitting.value || showFeedback.value || userAnswers.value[currentQuestion.value.id]) return
+      // FIX 1: Låser valet om frågan redan är besvarad (dvs. om det finns ett sparat svar)
+      if (isSubmitting.value || userAnswers.value[currentQuestion.value.id]) return
 
       selectedAnswer.value = answerId
       userAnswers.value[currentQuestion.value.id] = answerId
@@ -191,25 +211,28 @@ export default {
       const answer = currentQuestion.value.answers.find(a => a.id === answerId)
 
       // Check if correct
-      isCorrect.value = answer.is_correct === 1 || answer.is_correct === true
-      showFeedback.value = true
+      const isAnswerCorrect = answer.is_correct === 1 || answer.is_correct === true
+
+      // FIX 3: SPARA feedback-resultatet i questionResults
+      questionResults.value[currentQuestion.value.id] = isAnswerCorrect ? 'correct' : 'wrong'
+
+      // showFeedback och isCorrect uppdateras nu automatiskt via computed properties
     }
 
     const nextQuestion = () => {
-      showFeedback.value = false
-      isCorrect.value = null
-
+      // FIX 2: Tar bort reset av showFeedback och isCorrect från navigation
       if (currentQuestionIndex.value < questions.value.length - 1) {
         currentQuestionIndex.value++
+        // Ladda det sparade svaret för den nya frågan
         selectedAnswer.value = userAnswers.value[currentQuestion.value.id]
       }
     }
 
     const previousQuestion = () => {
-      showFeedback.value = false
-      isCorrect.value = null
+      // FIX 2: Tar bort reset av showFeedback och isCorrect från navigation
       if (currentQuestionIndex.value > 0) {
         currentQuestionIndex.value--
+        // Ladda det sparade svaret för den nya frågan
         selectedAnswer.value = userAnswers.value[currentQuestion.value.id]
       }
     }
@@ -261,8 +284,8 @@ export default {
       nextQuestion,
       previousQuestion,
       submitQuiz,
-      showFeedback,
-      isCorrect
+      showFeedback, // Nu computed
+      isCorrect     // Nu computed
     }
   }
 }
