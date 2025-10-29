@@ -1,33 +1,42 @@
 const express = require('express');
 const router = express.Router();
 const db = require('./db');
+const bcrypt = require('bcrypt');
 
 // ================= AUTH =================
 
 // Register
-router.post('/register', (req, res) => {
+router.post('/register', async (req, res) => {
     const {username, email, password} = req.body;
     if (!username || !email || !password)
         return res.status(400).json({success: false, message: 'Username, email, and password are required'});
 
     const checkUser = 'SELECT id FROM users WHERE username = ? OR email = ?';
-    db.query(checkUser, [username, email], (err, results) => {
+    db.query(checkUser, [username, email], async (err, results) => {
         if (err) return res.status(500).json({success: false, message: 'Database error'});
         if (results.length > 0)
             return res.status(400).json({success: false, message: 'Username or email already exists'});
 
-        const insertUser = 'INSERT INTO users (username, email, password) VALUES (?, ?, ?)';
-        db.query(insertUser, [username, email, password], (err, result) => {
-            if (err) return res.status(500).json({success: false, message: 'Failed to create user'});
+        try {
+            // Hash password with bcrypt (10 salt rounds)
+            const hashedPassword = await bcrypt.hash(password, 10);
 
-            req.session.userId = result.insertId;
-            req.session.username = username;
-            res.json({
-                success: true,
-                message: 'User registered successfully',
-                user: {id: result.insertId, username, email}
+            const insertUser = 'INSERT INTO users (username, email, password) VALUES (?, ?, ?)';
+            db.query(insertUser, [username, email, hashedPassword], (err, result) => {
+                if (err) return res.status(500).json({success: false, message: 'Failed to create user'});
+
+                req.session.userId = result.insertId;
+                req.session.username = username;
+                res.json({
+                    success: true,
+                    message: 'User registered successfully',
+                    user: {id: result.insertId, username, email}
+                });
             });
-        });
+        } catch (hashError) {
+            console.error('Password hashing error:', hashError);
+            return res.status(500).json({success: false, message: 'Failed to process password'});
+        }
     });
 });
 
@@ -37,16 +46,35 @@ router.post('/login', (req, res) => {
     if (!email || !password)
         return res.status(400).json({success: false, message: 'Email and password are required'});
 
-    const sql = 'SELECT id, username, email FROM users WHERE email = ? AND password = ?';
-    db.query(sql, [email, password], (err, results) => {
+    // Get user with password hash from database
+    const sql = 'SELECT id, username, email, password FROM users WHERE email = ?';
+    db.query(sql, [email], async (err, results) => {
         if (err) return res.status(500).json({success: false, message: 'Database error'});
         if (results.length === 0)
             return res.status(401).json({success: false, message: 'Invalid email or password'});
 
         const user = results[0];
-        req.session.userId = user.id;
-        req.session.username = user.username;
-        res.json({success: true, message: 'Login successful', user});
+        
+        try {
+            // Compare provided password with stored hash
+            const passwordMatch = await bcrypt.compare(password, user.password);
+            
+            if (!passwordMatch) {
+                return res.status(401).json({success: false, message: 'Invalid email or password'});
+            }
+
+            // Password matches - create session
+            req.session.userId = user.id;
+            req.session.username = user.username;
+            res.json({
+                success: true,
+                message: 'Login successful',
+                user: {id: user.id, username: user.username, email: user.email}
+            });
+        } catch (compareError) {
+            console.error('Password comparison error:', compareError);
+            return res.status(500).json({success: false, message: 'Authentication error'});
+        }
     });
 });
 
@@ -93,7 +121,7 @@ router.get('/users/:id/progress', (req, res) => {
     if (userId !== req.session.userId)
         return res.status(403).json({success: false, message: 'Forbidden'});
 
-    const sql = 'SELECT quiz_id, theory_completed FROM user_progress WHERE user_id = ?';
+    const sql = 'SELECT quiz_id, theory_completed, quiz_completed FROM user_progress WHERE user_id = ?';
     db.query(sql, [userId], (err, results) => {
         if (err) return res.status(500).json({success: false, message: 'Database error'});
         res.json({success: true, progress: results});
@@ -101,11 +129,19 @@ router.get('/users/:id/progress', (req, res) => {
 });
 
 router.post('/users/:id/progress', (req, res) => {
+    console.log('POST /users/:id/progress - Request received');
+    console.log('Session userId:', req.session.userId);
+    console.log('Request params:', req.params);
+    console.log('Request body:', req.body);
+    
     if (!req.session.userId)
         return res.status(401).json({success: false, message: 'Not logged in'});
 
     const userId = parseInt(req.params.id, 10);
     const {quizId} = req.body || {};
+
+    console.log('Parsed userId:', userId);
+    console.log('quizId from body:', quizId);
 
     if (!Number.isInteger(userId))
         return res.status(400).json({success: false, message: 'Invalid user id'});
@@ -114,33 +150,65 @@ router.post('/users/:id/progress', (req, res) => {
     if (!quizId)
         return res.status(400).json({success: false, message: 'quizId is required'});
 
+    // Parse quizId to integer
+    const parsedQuizId = parseInt(quizId, 10);
+    if (!Number.isInteger(parsedQuizId))
+        return res.status(400).json({success: false, message: 'Invalid quizId format'});
+
     const quizCheck = 'SELECT id FROM quizzes WHERE id = ?';
-    db.query(quizCheck, [quizId], (err, qres) => {
-        if (err) return res.status(500).json({success: false, message: 'Database error'});
+    db.query(quizCheck, [parsedQuizId], (err, qres) => {
+        if (err) {
+            console.error('Quiz check error:', err);
+            return res.status(500).json({success: false, message: 'Database error', error: err.message});
+        }
         if (qres.length === 0)
             return res.status(404).json({success: false, message: 'Quiz not found'});
 
         const selectSql = 'SELECT id FROM user_progress WHERE user_id = ? AND quiz_id = ?';
-        db.query(selectSql, [userId, quizId], (err, rows) => {
-            if (err) return res.status(500).json({success: false, message: 'Database error'});
+        db.query(selectSql, [userId, parsedQuizId], (err, rows) => {
+            if (err) {
+                console.error('Progress select error:', err);
+                return res.status(500).json({success: false, message: 'Database error', error: err.message});
+            }
 
             if (rows.length > 0) {
                 const updateSql = 'UPDATE user_progress SET theory_completed = TRUE WHERE user_id = ? AND quiz_id = ?';
-                db.query(updateSql, [userId, quizId], err => {
-                    if (err) return res.status(500).json({success: false, message: 'Failed to update progress'});
-                    res.json({success: true, message: 'Progress updated'});
+                db.query(updateSql, [userId, parsedQuizId], err => {
+                    if (err) {
+                        console.error('Progress update error:', err);
+                        return res.status(500).json({success: false, message: 'Failed to update progress', error: err.message});
+                    }
+                    res.json({success: true, message: 'Theory progress updated'});
                 });
             } else {
-                const insertSql = 'INSERT INTO user_progress (user_id, quiz_id, theory_completed) VALUES (?, ?, TRUE)';
-                db.query(insertSql, [userId, quizId], err => {
-                    if (err) return res.status(500).json({success: false, message: 'Failed to save progress'});
-                    res.json({success: true, message: 'Progress saved'});
+                // Use INSERT IGNORE or handle duplicate key error gracefully
+                const insertSql = 'INSERT INTO user_progress (user_id, quiz_id, theory_completed, quiz_completed) VALUES (?, ?, TRUE, FALSE)';
+                db.query(insertSql, [userId, parsedQuizId], err => {
+                    if (err) {
+                        // If it's a duplicate key error, try updating instead
+                        if (err.code === 'ER_DUP_ENTRY') {
+                            const updateSql = 'UPDATE user_progress SET theory_completed = TRUE WHERE user_id = ? AND quiz_id = ?';
+                            db.query(updateSql, [userId, parsedQuizId], updateErr => {
+                                if (updateErr) {
+                                    console.error('Progress update error (after duplicate):', updateErr);
+                                    return res.status(500).json({success: false, message: 'Failed to update progress', error: updateErr.message});
+                                }
+                                res.json({success: true, message: 'Theory progress updated'});
+                            });
+                        } else {
+                            console.error('Progress insert error:', err);
+                            return res.status(500).json({success: false, message: 'Failed to save progress', error: err.message});
+                        }
+                    } else {
+                        res.json({success: true, message: 'Theory progress saved'});
+                    }
                 });
             }
         });
     });
 });
 
+// ================= USER PROGRESS (RESET) =================
 router.delete('/users/:id/progress', (req, res) => {
     if (!req.session.userId)
         return res.status(401).json({success: false, message: 'Not logged in'});
@@ -152,12 +220,41 @@ router.delete('/users/:id/progress', (req, res) => {
     if (userId !== req.session.userId)
         return res.status(403).json({success: false, message: 'Forbidden'});
 
-    const sql = 'DELETE FROM user_progress WHERE user_id = ?';
-    db.query(sql, [userId], (err) => {
-        if (err) return res.status(500).json({success: false, message: 'Database error'});
-        res.json({success: true, message: 'Progress reset successfully'});
+    // 1. DELETE responses (måste köras först pga foreign key till user_attempts)
+    const deleteResponsesSql = `
+        DELETE ur FROM user_responses ur
+        JOIN user_attempts ua ON ur.attempt_id = ua.id
+        WHERE ua.user_id = ?
+    `;
+
+    db.query(deleteResponsesSql, [userId], (err) => {
+        if (err) {
+            console.error('Database error on deleting user_responses:', err);
+            return res.status(500).json({success: false, message: 'Failed to reset responses'});
+        }
+
+        // 2. DELETE attempts
+        const deleteAttemptsSql = 'DELETE FROM user_attempts WHERE user_id = ?';
+        db.query(deleteAttemptsSql, [userId], (err) => {
+            if (err) {
+                console.error('Database error on deleting user_attempts:', err);
+                return res.status(500).json({success: false, message: 'Failed to reset attempts'});
+            }
+
+            // 3. DELETE progress
+            const deleteProgressSql = 'DELETE FROM user_progress WHERE user_id = ?';
+            db.query(deleteProgressSql, [userId], (err) => {
+                if (err) {
+                    console.error('Database error on deleting user_progress:', err);
+                    return res.status(500).json({success: false, message: 'Failed to reset progress'});
+                }
+
+                res.json({success: true, message: 'All progress and attempts reset successfully'});
+            });
+        });
     });
 });
+
 
 // ================= QUIZZES =================
 router.get('/quizzes', (req, res) => {
@@ -249,7 +346,9 @@ router.post('/quizzes/:id/submit', (req, res) => {
         const questionIds = answers.map(a => a.questionId);
         const placeholders = questionIds.map(() => '?').join(',');
         const correctSql = `
-            SELECT q.id AS question_id, a.id AS answer_id, a.is_correct
+            SELECT q.id AS question_id,
+                   a.id AS answer_id,
+                   a.is_correct
             FROM questions q
                      JOIN answers a ON a.question_id = q.id
             WHERE q.quiz_id = ?
@@ -283,16 +382,39 @@ router.post('/quizzes/:id/submit', (req, res) => {
                 if (err) return res.status(500).json({success: false, message: 'Failed to save attempt'});
 
                 const attemptId = result.insertId;
-                if (graded.length === 0)
+                if (graded.length === 0) {
+                    // FIX #1: Inkludera theory_completed = TRUE vid INSERT
+                    const updateProgressSql = `
+                        INSERT INTO user_progress (user_id, quiz_id, quiz_completed, theory_completed)
+                        VALUES (?, ?, TRUE, TRUE) ON DUPLICATE KEY
+                        UPDATE quiz_completed = TRUE
+                    `;
+                    db.query(updateProgressSql, [req.session.userId, quizId], (progressErr) => {
+                        if (progressErr) console.error('Error marking quiz as completed (no responses):', progressErr);
+                    });
+
                     return res.json({
                         success: true,
                         results: {attemptId, score: correctCount, totalQuestions, correctCount}
                     });
+                }
 
                 const values = graded.map(g => [attemptId, g.questionId, g.selectedAnswerId, g.isCorrect]);
                 const insertResponses = 'INSERT INTO user_responses (attempt_id, question_id, selected_answer_id, is_correct) VALUES ?';
                 db.query(insertResponses, [values], err => {
                     if (err) return res.status(500).json({success: false, message: 'Failed to save responses'});
+
+                    // FIX #2: Inkludera theory_completed = TRUE vid INSERT
+                    const updateProgressSql = `
+                        INSERT INTO user_progress (user_id, quiz_id, quiz_completed, theory_completed)
+                        VALUES (?, ?, TRUE, TRUE) ON DUPLICATE KEY
+                        UPDATE quiz_completed = TRUE
+                    `;
+
+                    db.query(updateProgressSql, [req.session.userId, quizId], (progressErr) => {
+                        if (progressErr) console.error('Error marking quiz as completed:', progressErr);
+                    });
+
                     res.json({success: true, results: {attemptId, score: correctCount, totalQuestions, correctCount}});
                 });
             });

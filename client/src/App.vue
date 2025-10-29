@@ -7,29 +7,25 @@
         <h1>CyCure</h1>
       </div>
       <div class="nav-links" v-if="isLoggedIn">
-        <router-link to="/" class="nav-link">
-          <span class="icon">🏠</span> Home
+        <router-link to="/" class="nav-link">Home
         </router-link>
 
         <template v-if="!isLoggedIn">
           <router-link to="/login" class="nav-link">
-            <span class="icon">🔐</span> Login
+            <span class="icon"></span>Login
           </router-link>
-          <router-link to="/register" class="nav-link">
-            <span class="icon">📝</span> Register
+          <router-link to="/register" class="nav-link">Register
           </router-link>
         </template>
 
         <template v-else>
-          <router-link to="/myresults" class="nav-link">
-            <span class="icon">📊</span> My Results
+          <router-link to="/myresults" class="nav-link">My Results
           </router-link>
           <div class="user-menu">
             <span class="user-info">
               <span class="icon">👤</span> {{ currentUser.username }}
             </span>
-            <button @click="logout" class="logout-btn">
-              <span class="icon">🚪</span> Logout
+            <button @click="logout" class="logout-btn">Logout
             </button>
           </div>
         </template>
