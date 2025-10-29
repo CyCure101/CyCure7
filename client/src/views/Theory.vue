@@ -433,7 +433,7 @@ const completeTheory = async () => {
 
     if (!userId) {
       alert('You must be logged in to save progress.')
-      router.push('/login')
+      await router.push('/login')
       return
     }
 
@@ -443,7 +443,7 @@ const completeTheory = async () => {
 
     if (response.success) {
       alert('🎉 Theory completed! You can now start the quiz.')
-      router.push('/')
+      await router.push('/')
     } else {
       alert('❌ Failed to save: ' + (response.message || 'Unknown error'))
     }
