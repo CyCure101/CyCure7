@@ -16,10 +16,15 @@ app.use(cors({
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(session({
-    secret: process.env.SESSION_SECRET,
+    secret: process.env.SESSION_SECRET || 'cycure_secret_key_change_in_production_12345',
     resave: false,
     saveUninitialized: false,
-    cookie: { secure: false, maxAge: 24 * 60 * 60 * 1000 }
+    cookie: { 
+        secure: false, 
+        maxAge: 24 * 60 * 60 * 1000,
+        sameSite: 'lax',
+        httpOnly: true
+    }
 }));
 
 // Routes
