@@ -1,33 +1,42 @@
 const express = require('express');
 const router = express.Router();
 const db = require('./db');
+const bcrypt = require('bcrypt');
 
 // ================= AUTH =================
 
 // Register
-router.post('/register', (req, res) => {
+router.post('/register', async (req, res) => {
     const {username, email, password} = req.body;
     if (!username || !email || !password)
         return res.status(400).json({success: false, message: 'Username, email, and password are required'});
 
     const checkUser = 'SELECT id FROM users WHERE username = ? OR email = ?';
-    db.query(checkUser, [username, email], (err, results) => {
+    db.query(checkUser, [username, email], async (err, results) => {
         if (err) return res.status(500).json({success: false, message: 'Database error'});
         if (results.length > 0)
             return res.status(400).json({success: false, message: 'Username or email already exists'});
 
-        const insertUser = 'INSERT INTO users (username, email, password) VALUES (?, ?, ?)';
-        db.query(insertUser, [username, email, password], (err, result) => {
-            if (err) return res.status(500).json({success: false, message: 'Failed to create user'});
+        try {
+            // Hash password with bcrypt (10 salt rounds)
+            const hashedPassword = await bcrypt.hash(password, 10);
 
-            req.session.userId = result.insertId;
-            req.session.username = username;
-            res.json({
-                success: true,
-                message: 'User registered successfully',
-                user: {id: result.insertId, username, email}
+            const insertUser = 'INSERT INTO users (username, email, password) VALUES (?, ?, ?)';
+            db.query(insertUser, [username, email, hashedPassword], (err, result) => {
+                if (err) return res.status(500).json({success: false, message: 'Failed to create user'});
+
+                req.session.userId = result.insertId;
+                req.session.username = username;
+                res.json({
+                    success: true,
+                    message: 'User registered successfully',
+                    user: {id: result.insertId, username, email}
+                });
             });
-        });
+        } catch (hashError) {
+            console.error('Password hashing error:', hashError);
+            return res.status(500).json({success: false, message: 'Failed to process password'});
+        }
     });
 });
 
@@ -37,16 +46,35 @@ router.post('/login', (req, res) => {
     if (!email || !password)
         return res.status(400).json({success: false, message: 'Email and password are required'});
 
-    const sql = 'SELECT id, username, email FROM users WHERE email = ? AND password = ?';
-    db.query(sql, [email, password], (err, results) => {
+    // Get user with password hash from database
+    const sql = 'SELECT id, username, email, password FROM users WHERE email = ?';
+    db.query(sql, [email], async (err, results) => {
         if (err) return res.status(500).json({success: false, message: 'Database error'});
         if (results.length === 0)
             return res.status(401).json({success: false, message: 'Invalid email or password'});
 
         const user = results[0];
-        req.session.userId = user.id;
-        req.session.username = user.username;
-        res.json({success: true, message: 'Login successful', user});
+        
+        try {
+            // Compare provided password with stored hash
+            const passwordMatch = await bcrypt.compare(password, user.password);
+            
+            if (!passwordMatch) {
+                return res.status(401).json({success: false, message: 'Invalid email or password'});
+            }
+
+            // Password matches - create session
+            req.session.userId = user.id;
+            req.session.username = user.username;
+            res.json({
+                success: true,
+                message: 'Login successful',
+                user: {id: user.id, username: user.username, email: user.email}
+            });
+        } catch (compareError) {
+            console.error('Password comparison error:', compareError);
+            return res.status(500).json({success: false, message: 'Authentication error'});
+        }
     });
 });
 
