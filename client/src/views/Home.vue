@@ -107,6 +107,18 @@
       </div>
     </div>
 
+    <!-- Diploma Modal -->
+    <div v-if="showDiplomaModal" class="modal-overlay" @click="showDiplomaModal = false">
+      <div class="modal-content diploma" @click.stop>
+        <h2>🎓 Congratulations!</h2>
+        <p>You have completed all quizzes and earned your CyCure Diploma.</p>
+        <div class="diploma-badge">🏅</div>
+        <div class="modal-actions">
+          <button class="btn btn-primary" @click="showDiplomaModal = false">Awesome!</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Reset Confirmation Modal -->
     <div v-if="showResetModal" class="modal-overlay" @click="showResetModal = false">
       <div class="modal-content" @click.stop>
@@ -150,6 +162,7 @@ export default {
     const completedQuizzes = ref({})
     const showResetModal = ref(false)
     const userAttempts = ref([])
+    const showDiplomaModal = ref(false)
 
     // --- 🧮 Computed ---
     const completedTheoryCount = computed(() =>
@@ -162,6 +175,25 @@ export default {
             ? Math.round((completedQuizzesCount.value / quizzes.value.length) * 100)
             : 0
     )
+
+    // Show diploma modal when all quizzes completed
+    const allQuizzesCompleted = computed(() => quizzes.value.length > 0 && completedQuizzesCount.value === quizzes.value.length)
+
+    const getDiplomaKey = () => {
+      const id = currentUser.value?.id
+      return id ? `diplomaShown_${id}` : 'diplomaShown_guest'
+    }
+
+    const checkDiploma = () => {
+      if (allQuizzesCompleted.value) {
+        const key = getDiplomaKey()
+        if (!localStorage.getItem(key)) {
+          showDiplomaModal.value = true
+          localStorage.setItem(key, '1')
+        }
+      }
+    }
+
     const totalAttempts = computed(() => userAttempts.value.length)
     const streakIcon = computed(() => {
       const count = totalAttempts.value
@@ -245,6 +277,9 @@ export default {
           completedQuizzes.value = {}
           showResetModal.value = false
 
+          // Allow diploma to be earned again
+          try { localStorage.removeItem(getDiplomaKey()) } catch (e) { /* ignore */ }
+
           await fetchUserProgress()
           await fetchUserAttempts()
 
@@ -266,6 +301,7 @@ export default {
             await fetchQuizzes()
             await fetchUserAttempts()
             await fetchUserProgress()
+            checkDiploma()
           } else {
             router.replace('/login')
           }
@@ -279,6 +315,7 @@ export default {
           if (newPath === '/' && isLoggedIn.value) {
             await fetchUserProgress()
             await fetchUserAttempts()
+            checkDiploma()
           }
         }
     )
@@ -288,6 +325,7 @@ export default {
       const userId = currentUser.value?.id
       if (userId) {
         await fetchUserProgress()
+        checkDiploma()
       }
     })
 
@@ -297,7 +335,9 @@ export default {
       loading,
       error,
       completedTheory,
+      completedQuizzes,
       showResetModal,
+      showDiplomaModal,
       completedTheoryCount,
       completedQuizzesCount,
       overallPercentage,
@@ -635,8 +675,8 @@ export default {
 }
 
 .modal-content {
-  background: #161B22;
-  border: 1px solid #21262D;
+  position: relative;
+  background: white;
   padding: 2.5rem;
   border-radius: 16px;
   max-width: 500px;
@@ -689,6 +729,11 @@ export default {
 /* ========================================================================= */
 /* --- 5. RESPONSIVE --- */
 /* ========================================================================= */
+
+.diploma .diploma-badge {
+  font-size: 3rem;
+  margin: 1rem 0 0.5rem;
+}
 
 @media (max-width: 768px) {
   .progress-header {
