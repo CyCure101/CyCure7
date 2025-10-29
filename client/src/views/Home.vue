@@ -6,49 +6,53 @@
           <h1>Welcome to CyCure</h1>
           <p>Test your cybersecurity knowledge with our interactive quizzes</p>
         </div>
-        <button @click="showResetModal = true" class="btn-reset" title="Reset your progress">
-          🔄 Reset Progress
-        </button>
       </div>
 
       <!-- Overall Progress Card -->
       <div class="progress-overview" v-if="quizzes.length > 0">
         <div class="progress-header">
-          <h2>📊 Your Progress</h2>
+          <div class="header-placeholder"></div>
+          <div class="header-title-container">
+            <h2>📊 Your Progress</h2>
+          </div>
+          <button @click="showResetModal = true" class="btn-progress-reset" title="Reset your progress">
+            🔄 Reset Progress
+          </button>
         </div>
         <div class="progress-stats">
           <div class="stat-card">
-            <div class="stat-icon">📚</div>
             <div class="stat-info">
               <div class="stat-value">{{ completedTheoryCount }}</div>
               <div class="stat-label">Theories Completed</div>
             </div>
           </div>
           <div class="stat-card">
-            <div class="stat-icon">🎯</div>
             <div class="stat-info">
               <div class="stat-value">{{ completedQuizzesCount }}</div>
-              <div class="stat-label">Quizzes Available</div>
+              <div class="stat-label">Quizzes Completed</div>
             </div>
           </div>
           <div class="stat-card">
-            <div class="stat-icon">⭐</div>
             <div class="stat-info">
               <div class="stat-value">{{ overallPercentage }}%</div>
               <div class="stat-label">Overall Progress</div>
             </div>
           </div>
           <div class="stat-card">
-            <div class="stat-icon">{{ streakIcon }}</div>
             <div class="stat-info">
               <div class="stat-value">{{ totalAttempts }}</div>
               <div class="stat-label">Total Attempts</div>
             </div>
           </div>
         </div>
-        <div class="progress-bar-container">
-          <div class="progress-bar" :style="{ width: overallPercentage + '%' }">
-            <span class="progress-text">{{ overallPercentage }}%</span>
+        <div class="progress-overview" v-if="quizzes.length > 0">
+          <div class="progress-bar-container">
+            <div class="progress-bar" :style="{ width: overallPercentage + '%' }">
+            </div>
+
+            <div class="progress-text-overlay">
+              {{ overallPercentage }}%
+            </div>
           </div>
         </div>
       </div>
@@ -74,6 +78,8 @@
             <span class="question-count">{{ quiz.total_questions }} questions</span>
           </div>
           <div class="quiz-actions">
+
+
             <!-- Read Theory Button -->
             <button
                 @click="goToTheory(quiz.id)"
@@ -138,6 +144,7 @@ export default {
     const loading = ref(true)
     const error = ref('')
     const completedTheory = ref({})
+    const completedQuizzes = ref({})
     const showResetModal = ref(false)
     const userAttempts = ref([])
 
@@ -145,10 +152,11 @@ export default {
     const completedTheoryCount = computed(() =>
         Object.values(completedTheory.value).filter(Boolean).length
     )
-    const completedQuizzesCount = computed(() => completedTheoryCount.value)
+    const completedQuizzesCount = computed(() =>
+        Object.values(completedQuizzes.value).filter(Boolean).length)
     const overallPercentage = computed(() =>
         quizzes.value.length
-            ? Math.round((completedTheoryCount.value / quizzes.value.length) * 100)
+            ? Math.round((completedQuizzesCount.value / quizzes.value.length) * 100)
             : 0
     )
     const totalAttempts = computed(() => userAttempts.value.length)
@@ -208,8 +216,10 @@ export default {
         if (response.success) {
           const progress = response.progress || []
           completedTheory.value = {}
+          completedQuizzes.value = {}
           progress.forEach((item) => {
             completedTheory.value[item.quiz_id] = !!item.theory_completed
+            completedQuizzes.value[item.quiz_id] = !!item.quiz_completed
           })
         }
       } catch (err) {
@@ -229,6 +239,7 @@ export default {
 
         if (response.success) {
           completedTheory.value = {}
+          completedQuizzes.value = {}
           showResetModal.value = false
 
           await fetchUserProgress()
@@ -296,9 +307,11 @@ export default {
   },
 }
 </script>
-
-
 <style scoped>
+/* ========================================================================= */
+/* --- 1. CORE LAYOUT & TYPOGRAPHY --- */
+/* ========================================================================= */
+
 .home {
   text-align: center;
 }
@@ -307,44 +320,201 @@ export default {
   margin-bottom: 3rem;
 }
 
+/* Centrerar header-texten */
 .header-section {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
+  flex-direction: column;
   align-items: center;
   margin-bottom: 2rem;
-  flex-wrap: wrap;
-  gap: 1rem;
+  gap: 0.5rem; /* Mindre gap för tightare text */
+  width: 100%;
 }
 
 .hero h1 {
   font-size: 3rem;
   color: #2c3e50;
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
+  text-align: center;
 }
 
 .hero p {
   font-size: 1.2rem;
   color: #7f8c8d;
-  margin-bottom: 2rem;
+  text-align: center;
+  margin-bottom: 0;
 }
 
-.btn-reset {
+/* Den gamla .btn-reset-stilen är borttagen härifrån */
+
+
+/* ========================================================================= */
+/* --- 2. PROGRESS OVERVIEW (KORTET) --- */
+/* ========================================================================= */
+
+.progress-overview {
+  background: white;
+  border-radius: 16px;
+  padding: 2rem;
+  margin: 2rem 0;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* FIX & STYLING: Progress Header med Reset-knapp */
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #ecf0f1;
+}
+
+
+.header-placeholder {
+  flex-basis: 150px; /* Samma bredd som knappen */
+  opacity: 0;
+  visibility: hidden;
+}
+
+.header-title-container {
+  flex-grow: 1; /* Låter denna ta upp allt återstående utrymme */
+  text-align: center;
+}
+
+.progress-header h2 {
+  color: #2c3e50;
+  font-size: 1.8rem;
+  margin: 0;
+}
+
+.btn-progress-reset {
+  flex-basis: 159px;
+  display: flex;
+  justify-content: flex-end;
   background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
   color: white;
   border: none;
   padding: 0.75rem 1.5rem;
   border-radius: 8px;
   cursor: pointer;
-  font-size: 1rem;
+  font-size: 0.8rem;
   font-weight: 600;
   transition: all 0.3s ease;
   box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
 }
 
-.btn-reset:hover {
+.btn-progress-reset:hover {
+  background: linear-gradient(135deg, #d52c45, #ee5a6f);
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(255, 107, 107, 0.4);
+  box-shadow: 0 6px 16px rgba(213, 15, 15, 0.66);
 }
+
+/* Progress Stats Cards */
+.progress-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.stat-card {
+  background: linear-gradient(135deg, #f6f9fc 0%, #e9eff5 100%);
+  border-radius: 12px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.stat-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  border-color: #3498db;
+}
+
+.stat-value {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #2c3e50;
+  line-height: 1;
+  margin-bottom: 0.5rem;
+}
+
+.stat-label {
+  font-size: 0.9rem;
+  color: #7f8c8d;
+  font-weight: 500;
+}
+
+
+/* Progress Bar */
+.progress-bar-container {
+  background: #e9ecef;
+  border-radius: 12px;
+  height: 40px;
+  overflow: hidden;
+  position: relative;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.progress-bar {
+  background: linear-gradient(135deg, #3498db 0%, #2ecc71 100%);
+  height: 100%;
+  transition: width 1s ease-out;
+  position: relative;
+  overflow: hidden;
+}
+
+.progress-bar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.3),
+      transparent
+  );
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.progress-text-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.1rem;
+  z-index: 2;
+  color: #2c3e50;
+  text-shadow: 0 0 2px rgba(255, 255, 255, 0.5);
+}
+
+
+/* ========================================================================= */
+/* --- 3. QUIZ MODULES --- */
+/* ========================================================================= */
 
 .quiz-modules {
   display: grid;
@@ -456,6 +626,10 @@ export default {
   margin-top: 0.5rem;
 }
 
+/* ========================================================================= */
+/* --- 4. MODAL & UTILITY --- */
+/* ========================================================================= */
+
 .loading, .error {
   padding: 2rem;
   font-size: 1.1rem;
@@ -562,7 +736,11 @@ export default {
   transform: translateY(-2px);
 }
 
-/* Responsive */
+
+/* ========================================================================= */
+/* --- 5. RESPONSIVE --- */
+/* ========================================================================= */
+
 @media (max-width: 768px) {
   .header-section {
     flex-direction: column;
@@ -571,6 +749,16 @@ export default {
 
   .hero h1 {
     font-size: 2rem;
+  }
+
+  /* Säkrar att progress-header staplar på mobil */
+  .progress-header {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .progress-header h2 {
+    margin-bottom: 0.75rem;
   }
 
   .quiz-actions {
@@ -584,130 +772,5 @@ export default {
   .progress-stats {
     grid-template-columns: repeat(2, 1fr);
   }
-}
-
-/* Progress Overview Styles */
-.progress-overview {
-  background: white;
-  border-radius: 16px;
-  padding: 2rem;
-  margin: 2rem 0;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-}
-
-.progress-header {
-  text-align: center;
-  margin-bottom: 1.5rem;
-}
-
-.progress-header h2 {
-  color: #2c3e50;
-  font-size: 1.8rem;
-  margin: 0;
-}
-
-.progress-stats {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-  margin-bottom: 2rem;
-}
-
-.stat-card {
-  background: linear-gradient(135deg, #f6f9fc 0%, #e9eff5 100%);
-  border-radius: 12px;
-  padding: 1.5rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  gap: 0.5rem;
-  transition: all 0.3s ease;
-  border: 2px solid transparent;
-}
-
-.stat-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-  border-color: #3498db;
-}
-
-.stat-icon {
-  font-size: 2.5rem;
-  line-height: 1;
-}
-
-.stat-info {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.stat-value {
-  font-size: 2.5rem;
-  font-weight: 700;
-  color: #2c3e50;
-  line-height: 1;
-  margin-bottom: 0.5rem;
-}
-
-.stat-label {
-  font-size: 0.9rem;
-  color: #7f8c8d;
-  font-weight: 500;
-}
-
-.progress-bar-container {
-  background: #e9ecef;
-  border-radius: 12px;
-  height: 40px;
-  overflow: hidden;
-  position: relative;
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.progress-bar {
-  background: linear-gradient(135deg, #3498db 0%, #2ecc71 100%);
-  height: 100%;
-  transition: width 1s ease-out;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  overflow: hidden;
-}
-
-.progress-bar::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(
-      90deg,
-      transparent,
-      rgba(255, 255, 255, 0.3),
-      transparent
-  );
-  animation: shimmer 2s infinite;
-}
-
-@keyframes shimmer {
-  0% {
-    transform: translateX(-100%);
-  }
-  100% {
-    transform: translateX(100%);
-  }
-}
-
-.progress-text {
-  color: white;
-  font-weight: 700;
-  font-size: 1.1rem;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  position: relative;
-  z-index: 1;
 }
 </style>

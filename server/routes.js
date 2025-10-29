@@ -93,7 +93,7 @@ router.get('/users/:id/progress', (req, res) => {
     if (userId !== req.session.userId)
         return res.status(403).json({success: false, message: 'Forbidden'});
 
-    const sql = 'SELECT quiz_id, theory_completed FROM user_progress WHERE user_id = ?';
+    const sql = 'SELECT quiz_id, theory_completed, quiz_completed FROM user_progress WHERE user_id = ?';
     db.query(sql, [userId], (err, results) => {
         if (err) return res.status(500).json({success: false, message: 'Database error'});
         res.json({success: true, progress: results});
@@ -128,19 +128,20 @@ router.post('/users/:id/progress', (req, res) => {
                 const updateSql = 'UPDATE user_progress SET theory_completed = TRUE WHERE user_id = ? AND quiz_id = ?';
                 db.query(updateSql, [userId, quizId], err => {
                     if (err) return res.status(500).json({success: false, message: 'Failed to update progress'});
-                    res.json({success: true, message: 'Progress updated'});
+                    res.json({success: true, message: 'Theory progress updated'});
                 });
             } else {
-                const insertSql = 'INSERT INTO user_progress (user_id, quiz_id, theory_completed) VALUES (?, ?, TRUE)';
+                const insertSql = 'INSERT INTO user_progress (user_id, quiz_id, theory_completed, quiz_completed) VALUES (?, ?, TRUE, FALSE)';
                 db.query(insertSql, [userId, quizId], err => {
                     if (err) return res.status(500).json({success: false, message: 'Failed to save progress'});
-                    res.json({success: true, message: 'Progress saved'});
+                    res.json({success: true, message: 'Theory progress saved'});
                 });
             }
         });
     });
 });
 
+// ================= USER PROGRESS (RESET) =================
 router.delete('/users/:id/progress', (req, res) => {
     if (!req.session.userId)
         return res.status(401).json({success: false, message: 'Not logged in'});
@@ -152,12 +153,41 @@ router.delete('/users/:id/progress', (req, res) => {
     if (userId !== req.session.userId)
         return res.status(403).json({success: false, message: 'Forbidden'});
 
-    const sql = 'DELETE FROM user_progress WHERE user_id = ?';
-    db.query(sql, [userId], (err) => {
-        if (err) return res.status(500).json({success: false, message: 'Database error'});
-        res.json({success: true, message: 'Progress reset successfully'});
+    // 1. DELETE responses (måste köras först pga foreign key till user_attempts)
+    const deleteResponsesSql = `
+        DELETE ur FROM user_responses ur
+        JOIN user_attempts ua ON ur.attempt_id = ua.id
+        WHERE ua.user_id = ?
+    `;
+
+    db.query(deleteResponsesSql, [userId], (err) => {
+        if (err) {
+            console.error('Database error on deleting user_responses:', err);
+            return res.status(500).json({success: false, message: 'Failed to reset responses'});
+        }
+
+        // 2. DELETE attempts
+        const deleteAttemptsSql = 'DELETE FROM user_attempts WHERE user_id = ?';
+        db.query(deleteAttemptsSql, [userId], (err) => {
+            if (err) {
+                console.error('Database error on deleting user_attempts:', err);
+                return res.status(500).json({success: false, message: 'Failed to reset attempts'});
+            }
+
+            // 3. DELETE progress
+            const deleteProgressSql = 'DELETE FROM user_progress WHERE user_id = ?';
+            db.query(deleteProgressSql, [userId], (err) => {
+                if (err) {
+                    console.error('Database error on deleting user_progress:', err);
+                    return res.status(500).json({success: false, message: 'Failed to reset progress'});
+                }
+
+                res.json({success: true, message: 'All progress and attempts reset successfully'});
+            });
+        });
     });
 });
+
 
 // ================= QUIZZES =================
 router.get('/quizzes', (req, res) => {
@@ -249,7 +279,9 @@ router.post('/quizzes/:id/submit', (req, res) => {
         const questionIds = answers.map(a => a.questionId);
         const placeholders = questionIds.map(() => '?').join(',');
         const correctSql = `
-            SELECT q.id AS question_id, a.id AS answer_id, a.is_correct
+            SELECT q.id AS question_id,
+                   a.id AS answer_id,
+                   a.is_correct
             FROM questions q
                      JOIN answers a ON a.question_id = q.id
             WHERE q.quiz_id = ?
@@ -283,16 +315,39 @@ router.post('/quizzes/:id/submit', (req, res) => {
                 if (err) return res.status(500).json({success: false, message: 'Failed to save attempt'});
 
                 const attemptId = result.insertId;
-                if (graded.length === 0)
+                if (graded.length === 0) {
+                    // FIX #1: Inkludera theory_completed = TRUE vid INSERT
+                    const updateProgressSql = `
+                        INSERT INTO user_progress (user_id, quiz_id, quiz_completed, theory_completed)
+                        VALUES (?, ?, TRUE, TRUE) ON DUPLICATE KEY
+                        UPDATE quiz_completed = TRUE
+                    `;
+                    db.query(updateProgressSql, [req.session.userId, quizId], (progressErr) => {
+                        if (progressErr) console.error('Error marking quiz as completed (no responses):', progressErr);
+                    });
+
                     return res.json({
                         success: true,
                         results: {attemptId, score: correctCount, totalQuestions, correctCount}
                     });
+                }
 
                 const values = graded.map(g => [attemptId, g.questionId, g.selectedAnswerId, g.isCorrect]);
                 const insertResponses = 'INSERT INTO user_responses (attempt_id, question_id, selected_answer_id, is_correct) VALUES ?';
                 db.query(insertResponses, [values], err => {
                     if (err) return res.status(500).json({success: false, message: 'Failed to save responses'});
+
+                    // FIX #2: Inkludera theory_completed = TRUE vid INSERT
+                    const updateProgressSql = `
+                        INSERT INTO user_progress (user_id, quiz_id, quiz_completed, theory_completed)
+                        VALUES (?, ?, TRUE, TRUE) ON DUPLICATE KEY
+                        UPDATE quiz_completed = TRUE
+                    `;
+
+                    db.query(updateProgressSql, [req.session.userId, quizId], (progressErr) => {
+                        if (progressErr) console.error('Error marking quiz as completed:', progressErr);
+                    });
+
                     res.json({success: true, results: {attemptId, score: correctCount, totalQuestions, correctCount}});
                 });
             });
