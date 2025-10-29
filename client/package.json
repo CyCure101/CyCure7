@@ -4,6 +4,7 @@
   "description": "Frontend client for CyCure Cyber Security Quiz Site",
   "main": "src/main.js",
   "scripts": {
+    "start": "vite",
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",

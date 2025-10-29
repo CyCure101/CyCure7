@@ -424,27 +424,34 @@ const completeTheory = async () => {
   }
 
   const quizId = route.params.id
+  console.log('Completing theory for quizId:', quizId, 'Type:', typeof quizId)
 
   try {
     const userId = currentUser.value?.id
+    console.log('Current user:', currentUser.value)
+    console.log('UserId:', userId)
 
     if (!userId) {
       alert('You must be logged in to save progress.')
-      router.push('/login')
+      await router.push('/login')
       return
     }
 
+    console.log('Calling saveUserProgress with userId:', userId, 'quizId:', quizId)
     const response = await apiService.saveUserProgress(userId, quizId)
+    console.log('Response:', response)
 
     if (response.success) {
       alert('🎉 Theory completed! You can now start the quiz.')
-      router.push('/')
+      await router.push('/')
     } else {
       alert('❌ Failed to save: ' + (response.message || 'Unknown error'))
     }
   } catch (error) {
     console.error('Network error:', error)
-    alert('❌ Network error: ' + error.message)
+    console.error('Error response:', error.response?.data)
+    const errorMessage = error.response?.data?.message || error.response?.data?.error || error.message || 'Unknown error'
+    alert('❌ Network error: ' + errorMessage)
   }
 }
 </script>
