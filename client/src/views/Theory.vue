@@ -146,7 +146,7 @@ const allTheory = {
     videoUrl: 'https://www.youtube.com/embed/6EmD3k3Pb8Y',
     sections: [
       {
-        heading: '🎣 What is Phishing?',
+        heading: 'What is Phishing?',
         points: [
           'Phishing is a cyberattack where criminals trick you into revealing sensitive information',
           'Attackers often impersonate trusted organizations like banks or delivery companies',
@@ -459,7 +459,8 @@ const completeTheory = async () => {
 <style scoped>
 .theory-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #0d1117 0%, #161b22 100%);
+  color: #e6edf3;
   padding: 2rem;
   display: flex;
   justify-content: center;
@@ -467,16 +468,17 @@ const completeTheory = async () => {
 }
 
 .theory-card {
-  background: white;
-  border-radius: 20px;
+  background: #161b22;
+  border-radius: 16px;
   padding: 2rem;
   max-width: 900px;
   width: 100%;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+  border: 1px solid #30363d;
 }
 
 .progress-container {
-  background: #e0e0e0;
+  background: #30363d;
   border-radius: 10px;
   height: 10px;
   margin-bottom: 0.5rem;
@@ -484,26 +486,26 @@ const completeTheory = async () => {
 }
 
 .progress-bar {
-  background: linear-gradient(90deg, #667eea, #764ba2);
+  background: linear-gradient(90deg, #00ff88, #00c2ff);
   height: 100%;
   transition: width 0.5s ease;
 }
 
 .progress-text {
   text-align: center;
-  color: #666;
+  color: #9ba1a6;
   font-size: 0.9rem;
   margin-bottom: 1rem;
 }
 
 h1 {
-  color: #1a202c;
+  color: #00ff88;
   margin-bottom: 0.5rem;
   font-size: 2rem;
 }
 
 .description {
-  color: #555;
+  color: #9ba1a6;
   font-style: italic;
   margin-bottom: 2rem;
 }
@@ -511,8 +513,9 @@ h1 {
 .video-section {
   margin: 2rem 0;
   padding: 1.5rem;
-  background: #f7fafc;
+  background: #0d1117;
   border-radius: 12px;
+  border: 1px solid #30363d;
 }
 
 .video-wrapper {
@@ -530,29 +533,6 @@ h1 {
   left: 0;
   width: 100%;
   height: 100%;
-}
-
-.checkbox-label {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-top: 1rem;
-  cursor: pointer;
-}
-
-.checkbox-label input {
-  width: 20px;
-  height: 20px;
-  cursor: pointer;
-}
-
-.sections-container {
-  min-height: 400px;
-}
-
-.content-section h2 {
-  color: #2d3748;
-  margin-bottom: 1.5rem;
 }
 
 .flip-cards-grid {
@@ -592,43 +572,34 @@ h1 {
   align-items: center;
   justify-content: center;
   padding: 1rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .flip-card-front {
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  color: white;
-}
-
-.card-icon {
-  font-size: 2.5rem;
-  margin-bottom: 0.5rem;
+  background: linear-gradient(135deg, #00ff88, #00c2ff);
+  color: #0d1117;
+  font-weight: 600;
 }
 
 .flip-card-back {
-  background: white;
-  border: 2px solid #667eea;
+  background: #161b22;
+  border: 1px solid #00ff88;
   transform: rotateY(180deg);
-}
-
-.flip-card-back p {
-  color: #2d3748;
+  color: #e6edf3;
   text-align: center;
-  line-height: 1.5;
 }
 
 .mini-quiz {
-  background: #edf2f7;
+  background: #0d1117;
   padding: 1.5rem;
   border-radius: 12px;
+  border: 1px solid #30363d;
   margin-top: 2rem;
-  position: relative;
-  z-index: 5;
 }
 
 .quiz-question {
   font-weight: 600;
-  color: #2d3748;
+  color: #e6edf3;
   margin: 1rem 0;
 }
 
@@ -639,41 +610,34 @@ h1 {
 
 .quiz-options button {
   padding: 0.75rem 1rem;
-  border: 2px solid #cbd5e0;
-  background: white;
+  border: 2px solid #30363d;
+  background: #161b22;
+  color: #e6edf3;
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s;
   text-align: left;
-  font-size: 0.95rem;
-  position: relative;
-  z-index: 10;
 }
 
 .quiz-options button:hover {
-  border-color: #667eea;
-  background: #f7fafc;
+  border-color: #00c2ff;
+  background: #1c222c;
   transform: translateY(-2px);
 }
 
 .quiz-options button.selected {
-  border-color: #667eea;
-  background: #edf2f7;
+  border-color: #00ff88;
+  background: rgba(0, 255, 136, 0.1);
 }
 
 .quiz-options button.correct {
-  background: #c6f6d5;
-  border-color: #38a169;
+  background: rgba(0, 255, 136, 0.2);
+  border-color: #00ff88;
 }
 
 .quiz-options button.incorrect {
-  background: #fed7d7;
+  background: rgba(229, 62, 62, 0.2);
   border-color: #e53e3e;
-}
-
-.quiz-options button.disabled {
-  cursor: not-allowed;
-  opacity: 0.6;
 }
 
 .feedback {
@@ -684,13 +648,13 @@ h1 {
 }
 
 .feedback.success {
-  background: #c6f6d5;
-  color: #22543d;
+  background: rgba(0, 255, 136, 0.1);
+  color: #00ff88;
 }
 
 .feedback.error {
-  background: #fed7d7;
-  color: #742a2a;
+  background: rgba(229, 62, 62, 0.1);
+  color: #e53e3e;
 }
 
 .navigation-buttons {
@@ -702,9 +666,9 @@ h1 {
 
 .btn-nav {
   padding: 0.75rem 1.5rem;
-  border: 2px solid #667eea;
-  background: white;
-  color: #667eea;
+  border: 2px solid #00c2ff;
+  background: transparent;
+  color: #00c2ff;
   border-radius: 8px;
   cursor: pointer;
   font-weight: 600;
@@ -712,51 +676,40 @@ h1 {
 }
 
 .btn-nav:hover:not(:disabled) {
-  background: #667eea;
-  color: white;
-}
-
-.btn-nav:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
+  background: #00c2ff;
+  color: #0d1117;
 }
 
 .btn-complete {
-  background: linear-gradient(135deg, #48bb78, #38a169);
-  color: white;
+  background: linear-gradient(135deg, #00ff88, #00c2ff);
+  color: #0d1117;
   border: none;
   padding: 0.75rem 1.5rem;
   border-radius: 8px;
   cursor: pointer;
-  font-weight: 600;
+  font-weight: 700;
   transition: all 0.2s;
 }
 
 .btn-complete:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(72, 187, 120, 0.4);
-}
-
-.btn-complete:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
+  box-shadow: 0 4px 12px rgba(0, 255, 136, 0.3);
 }
 
 .tip-box {
-  background: linear-gradient(135deg, #fef3c7, #fde68a);
+  background: rgba(0, 194, 255, 0.1);
   padding: 1.5rem;
   border-radius: 12px;
-  border-left: 4px solid #f59e0b;
+  border-left: 4px solid #00c2ff;
 }
 
 .tip-box h4 {
   margin-bottom: 0.5rem;
-  color: #92400e;
+  color: #00c2ff;
 }
 
 .tip-box p {
-  color: #78350f;
-  margin: 0;
+  color: #9ba1a6;
 }
 
 @media (max-width: 768px) {

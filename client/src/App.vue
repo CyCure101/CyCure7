@@ -100,9 +100,11 @@ export default {
   box-sizing: border-box;
 }
 
+/* Global layout */
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: linear-gradient(135deg, #ffffff 0%, #f0f4f8 50%, #d9e2ec 100%);
+  background: #0D1117; /* Night Code */
+  color: #E6EDF3; /* Soft White */
   min-height: 100vh;
   background-attachment: fixed;
 }
@@ -111,52 +113,67 @@ body {
   min-height: 100vh;
 }
 
-/* Navbar Styles */
+/* ========================================================================= */
+/* --- NAVBAR --- */
+/* ========================================================================= */
+
 .navbar {
-  background-color: #2c3e50;
-  color: white;
+  background: rgba(22, 27, 34, 0.9); /* Dark Panel */
+  color: #E6EDF3;
   padding: 1rem 2rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border-bottom: 1px solid #21262D;
+  box-shadow: 0 4px 20px rgba(0, 163, 255, 0.15);
   position: sticky;
   top: 0;
   z-index: 100;
+  backdrop-filter: blur(10px);
 }
 
+/* Brand / Logo */
 .nav-brand {
   display: flex;
   align-items: center;
   gap: 1rem;
+
 }
 
 .logo {
-  height: 50px;
+  display: block;
+  height: 70px;
   width: auto;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
-  transition: transform 0.3s ease;
+  filter: drop-shadow(0 0 10px rgba(0, 255, 179, 0.3));
+  transition: transform 0.3s ease, filter 0.3s ease;
+
 }
 
 .logo:hover {
-  transform: scale(1.05);
+  transform: scale(1.08);
+  filter: drop-shadow(0 0 15px rgba(0, 255, 179, 0.5));
 }
 
 .nav-brand h1 {
   font-size: 1.8rem;
   font-weight: 700;
   letter-spacing: 1px;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+  color: #00A3FF; /* Cyber Blue */
+  text-shadow: 0 0 10px rgba(0, 163, 255, 0.4);
 }
+
+/* ========================================================================= */
+/* --- NAV LINKS --- */
+/* ========================================================================= */
 
 .nav-links {
   display: flex;
-  gap: 0.5rem;
+  gap: 0.75rem;
   align-items: center;
 }
 
 .nav-link {
-  color: white;
+  color: #E6EDF3;
   text-decoration: none;
   padding: 0.6rem 1.2rem;
   border-radius: 8px;
@@ -165,24 +182,28 @@ body {
   align-items: center;
   gap: 0.5rem;
   font-weight: 500;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
+  background: rgba(33, 38, 45, 0.6);
+  border: 1px solid transparent;
 }
 
 .nav-link:hover {
-  background: #34495e;
+  background: linear-gradient(135deg, #00A3FF, #00FFB3);
+  color: #0D1117;
   transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 0 15px rgba(0, 255, 179, 0.3);
 }
 
 .nav-link.router-link-active {
-  background: #34495e;
+  background: linear-gradient(135deg, #00A3FF, #00FFB3);
+  color: #0D1117;
   font-weight: 600;
+  border: 1px solid #00FFB3;
+  box-shadow: 0 0 10px rgba(0, 255, 179, 0.4);
 }
 
-.icon {
-  font-size: 1.1rem;
-}
+/* ========================================================================= */
+/* --- USER MENU --- */
+/* ========================================================================= */
 
 .user-menu {
   display: flex;
@@ -190,7 +211,7 @@ body {
   align-items: center;
   margin-left: 1rem;
   padding-left: 1rem;
-  border-left: 2px solid rgba(255, 255, 255, 0.3);
+  border-left: 2px solid rgba(0, 255, 179, 0.2);
 }
 
 .user-info {
@@ -198,33 +219,43 @@ body {
   align-items: center;
   gap: 0.5rem;
   padding: 0.6rem 1rem;
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(0, 163, 255, 0.15);
   border-radius: 8px;
   font-weight: 500;
+  color: #00FFB3;
+  border: 1px solid rgba(0, 255, 179, 0.3);
 }
 
+/* ========================================================================= */
+/* --- LOGOUT BUTTON --- */
+/* ========================================================================= */
+
 .logout-btn {
-  background: rgba(255, 59, 48, 0.8);
+  background: linear-gradient(135deg, #FF4C4C, #C62828);
   color: white;
   border: none;
   padding: 0.6rem 1.2rem;
   border-radius: 8px;
   cursor: pointer;
   font-size: inherit;
-  font-weight: 500;
+  font-weight: 600;
   transition: all 0.3s ease;
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  box-shadow: 0 0 8px rgba(255, 76, 76, 0.3);
 }
 
 .logout-btn:hover {
-  background: rgba(255, 59, 48, 1);
+  background: linear-gradient(135deg, #FF6B6B, #E53935);
   transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(255, 59, 48, 0.4);
+  box-shadow: 0 0 15px rgba(255, 76, 76, 0.5);
 }
 
-/* Main Content */
+/* ========================================================================= */
+/* --- MAIN CONTENT & LOADING --- */
+/* ========================================================================= */
+
 .main-content {
   padding: 2rem;
   max-width: 1200px;
@@ -240,12 +271,12 @@ body {
   min-height: 100vh;
   gap: 1rem;
   font-size: 1.2rem;
-  color: #2c3e50;
+  color: #00A3FF;
 }
 
 .spinner {
-  border: 4px solid rgba(44, 62, 80, 0.1);
-  border-top: 4px solid #2c3e50;
+  border: 4px solid rgba(0, 255, 179, 0.1);
+  border-top: 4px solid #00A3FF;
   border-radius: 50%;
   width: 50px;
   height: 50px;
@@ -253,15 +284,14 @@ body {
 }
 
 @keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
-/* Responsive Design */
+/* ========================================================================= */
+/* --- RESPONSIVE --- */
+/* ========================================================================= */
+
 @media (max-width: 768px) {
   .navbar {
     flex-direction: column;
@@ -286,10 +316,11 @@ body {
     margin-left: 0;
     padding-left: 0;
     border-left: none;
-    border-top: 2px solid rgba(255, 255, 255, 0.3);
+    border-top: 2px solid rgba(0, 255, 179, 0.2);
     padding-top: 0.5rem;
     width: 100%;
     justify-content: center;
   }
 }
 </style>
+
