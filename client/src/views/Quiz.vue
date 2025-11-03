@@ -296,6 +296,9 @@ export default {
   max-width: 800px;
   margin: 0 auto;
   padding: 2rem;
+  color: #e6edf3;
+  background: linear-gradient(135deg, #0d1117 0%, #161b22 100%);
+  min-height: 100vh;
 }
 
 .loading, .error, .login-required {
@@ -304,16 +307,16 @@ export default {
 }
 
 .loading h2, .error h2, .login-required h2 {
-  color: #2c3e50;
+  color: #e6edf3;
   margin-bottom: 1rem;
 }
 
 .error {
-  color: #e74c3c;
+  color: #e53e3e;
 }
 
 .login-required {
-  color: #f39c12;
+  color: #fbbf24;
 }
 
 .quiz-header {
@@ -322,12 +325,13 @@ export default {
 }
 
 .quiz-header h1 {
-  color: #2c3e50;
+  color: #00ff88;
   margin-bottom: 0.5rem;
+  font-size: 2rem;
 }
 
 .quiz-header p {
-  color: #7f8c8d;
+  color: #9ba1a6;
   margin-bottom: 2rem;
 }
 
@@ -341,20 +345,20 @@ export default {
 .progress-bar {
   width: 300px;
   height: 8px;
-  background-color: #ecf0f1;
+  background-color: #30363d;
   border-radius: 4px;
   overflow: hidden;
 }
 
 .progress-fill {
   height: 100%;
-  background-color: #3498db;
+  background: linear-gradient(90deg, #00ff88, #00c2ff);
   transition: width 0.3s ease;
 }
 
 .progress-text {
   font-weight: bold;
-  color: #2c3e50;
+  color: #9ba1a6;
 }
 
 .question-container {
@@ -362,14 +366,15 @@ export default {
 }
 
 .question-card {
-  background: white;
+  background: #161b22;
   padding: 2rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  border: 1px solid #30363d;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
 }
 
 .question-text {
-  color: #2c3e50;
+  color: #e6edf3;
   margin-bottom: 2rem;
   font-size: 1.2rem;
   line-height: 1.5;
@@ -383,26 +388,28 @@ export default {
   display: flex;
   align-items: center;
   padding: 1rem;
-  margin-bottom: 0.5rem;
-  border: 2px solid #ecf0f1;
+  margin-bottom: 0.75rem;
+  border: 2px solid #30363d;
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.3s ease;
+  background: #0d1117;
 }
 
 .answer-option:hover:not(.disabled) {
-  border-color: #3498db;
-  background-color: #f8f9fa;
+  border-color: #00c2ff;
+  background-color: rgba(0, 194, 255, 0.05);
+  transform: translateY(-2px);
 }
 
 .answer-option.selected {
-  border-color: #3498db;
-  background-color: #e3f2fd;
+  border-color: #00ff88;
+  background: rgba(0, 255, 136, 0.08);
 }
 
 .answer-option.disabled {
   cursor: not-allowed;
-  opacity: 0.6;
+  opacity: 0.5;
 }
 
 .answer-radio {
@@ -412,14 +419,14 @@ export default {
 .radio-circle {
   width: 20px;
   height: 20px;
-  border: 2px solid #bdc3c7;
+  border: 2px solid #9ba1a6;
   border-radius: 50%;
   transition: all 0.3s ease;
 }
 
 .radio-circle.checked {
-  border-color: #3498db;
-  background-color: #3498db;
+  border-color: #00ff88;
+  background: #00ff88;
   position: relative;
 }
 
@@ -431,13 +438,13 @@ export default {
   transform: translate(-50%, -50%);
   width: 8px;
   height: 8px;
-  background-color: white;
+  background-color: #0d1117;
   border-radius: 50%;
 }
 
 .answer-text {
   flex: 1;
-  color: #2c3e50;
+  color: #e6edf3;
   font-size: 1rem;
 }
 
@@ -449,43 +456,49 @@ export default {
 
 .btn {
   padding: 0.75rem 1.5rem;
-  border: none;
-  border-radius: 4px;
+  border-radius: 8px;
   cursor: pointer;
   font-size: 1rem;
-  transition: background-color 0.3s;
+  font-weight: 600;
+  transition: all 0.3s ease;
 }
 
 .btn:disabled {
-  opacity: 0.6;
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
 .btn-primary {
-  background-color: #3498db;
-  color: white;
+  background: linear-gradient(135deg, #00ff88, #00c2ff);
+  color: #0d1117;
+  border: none;
 }
 
 .btn-primary:hover:not(:disabled) {
-  background-color: #2980b9;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0, 255, 136, 0.4);
 }
 
 .btn-secondary {
-  background-color: #95a5a6;
-  color: white;
+  background: transparent;
+  border: 2px solid #00c2ff;
+  color: #00c2ff;
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background-color: #7f8c8d;
+  background: #00c2ff;
+  color: #0d1117;
 }
 
 .btn-success {
-  background-color: #27ae60;
-  color: white;
+  background: #00ff88;
+  color: #0d1117;
+  border: none;
 }
 
 .btn-success:hover:not(:disabled) {
-  background-color: #229954;
+  background: #00c2ff;
+  color: #0d1117;
 }
 
 .feedback-message {
@@ -499,17 +512,17 @@ export default {
 }
 
 .feedback-message.correct {
-  color: #27ae60;
-  background-color: #eafaf1;
-  border: 2px solid #27ae60;
+  color: #00ff88;
+  background-color: rgba(0, 255, 136, 0.1);
+  border: 2px solid #00ff88;
   margin-bottom: 1rem;
 }
 
 .feedback-message.wrong {
-  color: #e74c3c;
-  background-color: #fdecea;
-  border: 2px solid #e74c3c;
+  color: #e53e3e;
+  background-color: rgba(229, 62, 62, 0.1);
+  border: 2px solid #e53e3e;
   margin-bottom: 1rem;
 }
-
 </style>
+

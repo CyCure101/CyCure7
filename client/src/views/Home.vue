@@ -7,8 +7,8 @@
           <p>Test your cybersecurity knowledge with our interactive quizzes</p>
         </div>
       </div>
-
-      <!-- Overall Progress Card -->
+<!--
+      Overall Progress Card
       <div class="progress-overview" v-if="quizzes.length > 0">
         <div class="progress-header">
           <div class="header-placeholder"></div>
@@ -57,6 +57,8 @@
         </div>
       </div>
 
+      -->
+
       <div v-if="loading" class="loading">
         <p>Loading quizzes...</p>
       </div>
@@ -78,6 +80,7 @@
             <span class="question-count">{{ quiz.total_questions }} questions</span>
           </div>
           <div class="quiz-actions">
+
 
 
             <!-- Read Theory Button -->
@@ -354,77 +357,75 @@ export default {
 
 .home {
   text-align: center;
+  background-color: #0D1117; /* Night Code */
+  color: #E6EDF3; /* Soft White */
+  min-height: 100vh;
 }
 
 .hero {
   margin-bottom: 3rem;
 }
 
-/* Centrerar header-texten */
 .header-section {
   display: flex;
   justify-content: center;
   flex-direction: column;
   align-items: center;
   margin-bottom: 2rem;
-  gap: 0.5rem; /* Mindre gap för tightare text */
+  gap: 0.5rem;
   width: 100%;
 }
 
 .hero h1 {
   font-size: 3rem;
-  color: #2c3e50;
+  color: #00A3FF; /* Cyber Blue */
+  text-shadow: 0 0 12px rgba(0, 163, 255, 0.3);
   margin-bottom: 0.5rem;
-  text-align: center;
 }
 
 .hero p {
   font-size: 1.2rem;
-  color: #7f8c8d;
-  text-align: center;
+  color: #8B949E; /* Slate Gray */
   margin-bottom: 0;
 }
-
-/* Den gamla .btn-reset-stilen är borttagen härifrån */
-
 
 /* ========================================================================= */
 /* --- 2. PROGRESS OVERVIEW (KORTET) --- */
 /* ========================================================================= */
 
 .progress-overview {
-  background: white;
+  background: #161B22; /* Dark Panel */
   border-radius: 16px;
   padding: 2rem;
   margin: 2rem 0;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  border: 1px solid #21262D; /* Graphite */
 }
 
-/* FIX & STYLING: Progress Header med Reset-knapp */
 .progress-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1.5rem;
   padding-bottom: 0.5rem;
-  border-bottom: 1px solid #ecf0f1;
+  border-bottom: 1px solid #21262D;
 }
 
-
 .header-placeholder {
-  flex-basis: 150px; /* Samma bredd som knappen */
+  flex-basis: 150px;
   opacity: 0;
   visibility: hidden;
 }
 
 .header-title-container {
-  flex-grow: 1; /* Låter denna ta upp allt återstående utrymme */
+  flex-grow: 1;
   text-align: center;
 }
 
 .progress-header h2 {
-  color: #2c3e50;
+  color: #00FFB3; /* Neon Green */
   font-size: 1.8rem;
+  text-shadow: 0 0 10px rgba(0, 255, 179, 0.3);
   margin: 0;
 }
 
@@ -432,7 +433,7 @@ export default {
   flex-basis: 159px;
   display: flex;
   justify-content: flex-end;
-  background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
+  background: linear-gradient(135deg, #FF4C4C, #C62828);
   color: white;
   border: none;
   padding: 0.75rem 1.5rem;
@@ -441,13 +442,13 @@ export default {
   font-size: 0.8rem;
   font-weight: 600;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+  box-shadow: 0 0 10px rgba(255, 76, 76, 0.5);
 }
 
 .btn-progress-reset:hover {
-  background: linear-gradient(135deg, #d52c45, #ee5a6f);
+  background: linear-gradient(135deg, #FF6B6B, #E53935);
+  box-shadow: 0 0 18px rgba(255, 76, 76, 0.7);
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(213, 15, 15, 0.66);
 }
 
 /* Progress Stats Cards */
@@ -459,7 +460,8 @@ export default {
 }
 
 .stat-card {
-  background: linear-gradient(135deg, #f6f9fc 0%, #e9eff5 100%);
+  background: #0D1117;
+  border: 1px solid #21262D;
   border-radius: 12px;
   padding: 1.5rem;
   display: flex;
@@ -468,89 +470,67 @@ export default {
   text-align: center;
   gap: 0.5rem;
   transition: all 0.3s ease;
-  border: 2px solid transparent;
 }
 
 .stat-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-  border-color: #3498db;
+  border-color: #00A3FF;
+  box-shadow: 0 0 12px rgba(0, 163, 255, 0.4);
 }
 
 .stat-value {
   font-size: 2.5rem;
   font-weight: 700;
-  color: #2c3e50;
+  color: #00FFB3; /* Neon Green */
   line-height: 1;
-  margin-bottom: 0.5rem;
 }
 
 .stat-label {
   font-size: 0.9rem;
-  color: #7f8c8d;
+  color: #8B949E;
   font-weight: 500;
 }
 
-
 /* Progress Bar */
 .progress-bar-container {
-  background: #e9ecef;
+  background: #21262D;
   border-radius: 12px;
   height: 40px;
   overflow: hidden;
   position: relative;
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .progress-bar {
-  background: linear-gradient(135deg, #3498db 0%, #2ecc71 100%);
+  background: linear-gradient(90deg, #00A3FF, #00FFB3);
   height: 100%;
   transition: width 1s ease-out;
+  box-shadow: 0 0 12px rgba(0, 255, 179, 0.4);
   position: relative;
-  overflow: hidden;
 }
 
 .progress-bar::after {
   content: '';
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(
-      90deg,
-      transparent,
-      rgba(255, 255, 255, 0.3),
-      transparent
-  );
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
   animation: shimmer 2s infinite;
 }
 
 @keyframes shimmer {
-  0% {
-    transform: translateX(-100%);
-  }
-  100% {
-    transform: translateX(100%);
-  }
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
 }
 
 .progress-text-overlay {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 700;
   font-size: 1.1rem;
-  z-index: 2;
-  color: #2c3e50;
-  text-shadow: 0 0 2px rgba(255, 255, 255, 0.5);
+  color: #E6EDF3;
 }
-
 
 /* ========================================================================= */
 /* --- 3. QUIZ MODULES --- */
@@ -564,27 +544,28 @@ export default {
 }
 
 .module-card {
-  background: white;
+  background: #161B22;
+  border: 1px solid #21262D;
   padding: 2rem;
   border-radius: 12px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.5);
   transition: all 0.3s ease;
   position: relative;
 }
 
 .module-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  transform: translateY(-6px);
+  box-shadow: 0 0 20px rgba(0, 163, 255, 0.3);
 }
 
 .module-card h3 {
-  color: #2c3e50;
+  color: #00A3FF;
   margin-bottom: 1rem;
   font-size: 1.5rem;
 }
 
 .module-card p {
-  color: #7f8c8d;
+  color: #C9D1D9;
   margin-bottom: 1rem;
   line-height: 1.6;
 }
@@ -597,8 +578,8 @@ export default {
 }
 
 .quiz-type {
-  background-color: #3498db;
-  color: white;
+  background: #00A3FF;
+  color: #fff;
   padding: 0.4rem 0.8rem;
   border-radius: 6px;
   font-weight: 600;
@@ -607,8 +588,7 @@ export default {
 }
 
 .question-count {
-  color: #7f8c8d;
-  font-weight: 500;
+  color: #8B949E;
 }
 
 .quiz-actions {
@@ -628,42 +608,47 @@ export default {
   transition: all 0.3s ease;
 }
 
+/* --- Primary Button --- */
 .btn-primary {
-  background-color: #3498db;
-  color: white;
+  background: linear-gradient(135deg, #00A3FF, #00FFB3);
+  color: #0D1117;
+  font-weight: 700;
+  box-shadow: 0 0 8px rgba(0, 255, 179, 0.3);
 }
 
 .btn-primary:hover:not(:disabled) {
-  background-color: #2980b9;
+  box-shadow: 0 0 16px rgba(0, 255, 179, 0.6);
   transform: translateY(-2px);
 }
 
+/* --- Secondary Button --- */
 .btn-secondary {
-  background-color: #266c01;
+  background: #6C63FF;
   color: white;
 }
 
-
 .btn-secondary:hover {
-  background-color: #2c791a;
+  background: #7E72FF;
+  box-shadow: 0 0 10px rgba(108, 99, 255, 0.4);
   transform: translateY(-2px);
 }
 
-
 .btn:disabled {
-  background-color: #bdc3c7;
+  background-color: #3A3F47;
   cursor: not-allowed;
   opacity: 0.6;
 }
 
+/* Progress Badge */
 .progress-badge {
-  background: linear-gradient(135deg, #2ecc71, #27ae60);
-  color: white;
+  background: linear-gradient(135deg, #00FFB3, #00A36C);
+  color: #0D1117;
   padding: 0.5rem;
   border-radius: 6px;
   font-size: 0.85rem;
   font-weight: 600;
   margin-top: 0.5rem;
+  box-shadow: 0 0 10px rgba(0, 255, 179, 0.3);
 }
 
 /* ========================================================================= */
@@ -675,27 +660,18 @@ export default {
   font-size: 1.1rem;
 }
 
-.loading {
-  color: #3498db;
-}
+.loading { color: #00A3FF; }
+.error { color: #FF4C4C; }
 
-.error {
-  color: #e74c3c;
-}
-
-/* Modal Styles */
 .modal-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.7);
+  inset: 0;
+  background: rgba(13, 17, 23, 0.9);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1000;
-  backdrop-filter: blur(4px);
+  backdrop-filter: blur(6px);
 }
 
 .modal-content {
@@ -705,78 +681,50 @@ export default {
   border-radius: 16px;
   max-width: 500px;
   width: 90%;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 0 25px rgba(0, 163, 255, 0.3);
   animation: slideIn 0.3s ease-out;
-}
-
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  color: #E6EDF3;
 }
 
 .modal-content h2 {
-  color: #e74c3c;
-  margin-bottom: 1rem;
-  font-size: 1.8rem;
+  color: #FF4C4C;
 }
 
 .modal-content p {
-  color: #2c3e50;
-  margin-bottom: 1rem;
-  font-size: 1.1rem;
+  color: #E6EDF3;
 }
 
 .warning-text {
-  color: #e74c3c;
+  color: #FF4C4C;
   font-weight: 600;
-  margin-top: 1rem;
-}
-
-.reset-list {
-  text-align: left;
-  margin: 1rem 0;
-  padding-left: 1.5rem;
 }
 
 .reset-list li {
-  color: #7f8c8d;
-  margin: 0.5rem 0;
-  font-size: 0.95rem;
-}
-
-.modal-actions {
-  display: flex;
-  gap: 1rem;
-  margin-top: 2rem;
+  color: #8B949E;
 }
 
 .btn-cancel {
   flex: 1;
-  background-color: #95a5a6;
-  color: white;
+  background: #21262D;
+  color: #E6EDF3;
+  border: 1px solid #3A3F47;
 }
 
 .btn-cancel:hover {
-  background-color: #7f8c8d;
+  background: #2A313A;
 }
 
 .btn-danger {
   flex: 1;
-  background: linear-gradient(135deg, #e74c3c, #c0392b);
+  background: linear-gradient(135deg, #FF4C4C, #C62828);
   color: white;
+  font-weight: 600;
 }
 
 .btn-danger:hover {
-  background: linear-gradient(135deg, #c0392b, #a93226);
+  box-shadow: 0 0 15px rgba(255, 76, 76, 0.6);
   transform: translateY(-2px);
 }
-
 
 /* ========================================================================= */
 /* --- 5. RESPONSIVE --- */
@@ -788,35 +736,13 @@ export default {
 }
 
 @media (max-width: 768px) {
-  .header-section {
-    flex-direction: column;
-    text-align: center;
-  }
-
-  .hero h1 {
-    font-size: 2rem;
-  }
-
-  /* Säkrar att progress-header staplar på mobil */
   .progress-header {
     flex-direction: column;
     align-items: center;
   }
-
-  .progress-header h2 {
-    margin-bottom: 0.75rem;
-  }
-
-  .quiz-actions {
-    flex-direction: column;
-  }
-
-  .modal-content {
-    padding: 1.5rem;
-  }
-
   .progress-stats {
     grid-template-columns: repeat(2, 1fr);
   }
 }
 </style>
+
