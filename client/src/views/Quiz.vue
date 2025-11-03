@@ -23,12 +23,21 @@
         <h1>{{ quiz.title }}</h1>
         <p>{{ quiz.description }}</p>
         <div class="quiz-progress">
-          <div class="progress-bar">
+          <!-- NEW: Segmented Progress Bar based on question results -->
+          <div class="segmented-progress-bar">
             <div
-                class="progress-fill"
-                :style="{ width: progressPercentage + '%' }"
+                v-for="(question, index) in questions"
+                :key="question.id"
+                class="progress-segment"
+                :class="{
+                    'segment-correct': questionResults[question.id] === 'correct',
+                    'segment-wrong': questionResults[question.id] === 'wrong',
+                    'segment-current': index === currentQuestionIndex
+                }"
             ></div>
           </div>
+          <!-- End NEW Segmented Progress Bar -->
+
           <span class="progress-text">
             Question {{ currentQuestionIndex + 1 }} of {{ questions.length }}
           </span>
@@ -47,10 +56,7 @@
                 v-for="answer in currentQuestion.answers"
                 :key="answer.id"
                 class="answer-option"
-                :class="{
-                'selected': selectedAnswer === answer.id,
-                'disabled': isSubmitting
-              }"
+                :class="getAnswerClasses(answer.id)"
                 @click="selectAnswer(answer.id)"
             >
               <div class="answer-radio">
@@ -71,6 +77,9 @@
             <p>{{ isCorrect ? '✅ Correct!' : '❌ Wrong answer!' }}</p>
           </div>
 
+          <div v-if="showFeedback && !isCorrect" class="correct-answer-hint">
+            <p>Rätt svar var: <strong>{{ correctAnswerText }}</strong></p>
+          </div>
 
           <!-- Navigation Buttons -->
           <div class="quiz-navigation">
@@ -86,7 +95,7 @@
                 v-if="currentQuestionIndex < questions.length - 1"
                 @click="nextQuestion"
                 class="btn btn-primary"
-                :disabled="!selectedAnswer || isSubmitting"
+                :disabled="isSubmitting"
             >
               Next
             </button>
@@ -95,7 +104,7 @@
                 v-else
                 @click="submitQuiz"
                 class="btn btn-success"
-                :disabled="!selectedAnswer || isSubmitting"
+                :disabled="isSubmitting"
             >
               {{ isSubmitting ? 'Submitting...' : 'Submit Quiz' }}
             </button>
@@ -134,27 +143,59 @@ export default {
       return questions.value[currentQuestionIndex.value] || {}
     })
 
-    const progressPercentage = computed(() => {
-      return ((currentQuestionIndex.value + 1) / questions.value.length) * 100
-    })
-
-    // NY: Beräknar feedback för den aktuella frågan baserat på sparad data
+    // Beräknar feedback för den aktuella frågan baserat på sparad data
     const currentQuestionResult = computed(() => {
       const questionId = currentQuestion.value.id;
       // Returnerar 'correct', 'wrong', eller null
       return questionResults.value[questionId] || null;
     })
 
-    // NY: Styr om feedback-meddelandet ska visas
+    // Styr om feedback-meddelandet ska visas
     const showFeedback = computed(() => {
       // Visa feedback om frågan har ett sparat resultat
       return !!currentQuestionResult.value;
     })
 
-    // NY: Styr om feedback-meddelandet ska vara grönt eller rött
+    // Styr om feedback-meddelandet ska vara grönt eller rött
     const isCorrect = computed(() => {
       return currentQuestionResult.value === 'correct';
     })
+
+    // NY: Visar rätt svarstext när användaren har svarat fel
+    const correctAnswerText = computed(() => {
+      const correct = currentQuestion.value.answers.find(a => a.is_correct === 1 || a.is_correct === true);
+      return correct ? correct.answer_text : 'N/A';
+    });
+
+    // NY: Beräknar dynamiska CSS-klasser för varje svarsalternativ
+    const getAnswerClasses = (answerId) => {
+      const classes = {};
+      const questionId = currentQuestion.value.id;
+      const isAnswered = !!questionResults.value[questionId];
+      const isSelected = selectedAnswer.value === answerId;
+
+      classes.disabled = isSubmitting.value || isAnswered;
+
+      if (isAnswered) {
+        const isCorrectAnswer = currentQuestion.value.answers.find(a => a.id === answerId)?.is_correct;
+
+        if (isSelected) {
+          // Detta är det valda svaret, sätt färg baserat på korrekthet
+          classes['selected-correct'] = isCorrect.value;
+          classes['selected-wrong'] = !isCorrect.value;
+
+        } else if (!isCorrect.value && isCorrectAnswer) {
+          // Om fel svar valdes (isCorrect.value är false), markera det RÄTTA svaret också (blå kant)
+          classes['correct-hint'] = true;
+        }
+
+      } else {
+        // Före svar: Markera endast om det är valt
+        classes.selected = isSelected;
+      }
+
+      return classes;
+    };
 
 
     const checkAuth = async () => {
@@ -187,8 +228,8 @@ export default {
         }
         questions.value = questionsResponse.questions
 
-        // Initialize user answers
-        questions.value.forEach((question, index) => {
+        // Initialize user answers and results
+        questions.value.forEach((question) => {
           userAnswers.value[question.id] = null
           questionResults.value[question.id] = null // Initialize results storage
         })
@@ -201,7 +242,7 @@ export default {
     }
 
     const selectAnswer = (answerId) => {
-      // FIX 1: Låser valet om frågan redan är besvarad (dvs. om det finns ett sparat svar)
+      // Låser valet om frågan redan är besvarad (dvs. om det finns ett sparat svar)
       if (isSubmitting.value || userAnswers.value[currentQuestion.value.id]) return
 
       selectedAnswer.value = answerId
@@ -213,14 +254,13 @@ export default {
       // Check if correct
       const isAnswerCorrect = answer.is_correct === 1 || answer.is_correct === true
 
-      // FIX 3: SPARA feedback-resultatet i questionResults
+      // SPARA feedback-resultatet i questionResults (detta triggar den nya färglogiken i progressbaren)
       questionResults.value[currentQuestion.value.id] = isAnswerCorrect ? 'correct' : 'wrong'
 
       // showFeedback och isCorrect uppdateras nu automatiskt via computed properties
     }
 
     const nextQuestion = () => {
-      // FIX 2: Tar bort reset av showFeedback och isCorrect från navigation
       if (currentQuestionIndex.value < questions.value.length - 1) {
         currentQuestionIndex.value++
         // Ladda det sparade svaret för den nya frågan
@@ -229,7 +269,6 @@ export default {
     }
 
     const previousQuestion = () => {
-      // FIX 2: Tar bort reset av showFeedback och isCorrect från navigation
       if (currentQuestionIndex.value > 0) {
         currentQuestionIndex.value--
         // Ladda det sparade svaret för den nya frågan
@@ -278,14 +317,17 @@ export default {
       isSubmitting,
       currentQuestionIndex,
       selectedAnswer,
+      userAnswers,
+      questionResults,
       currentQuestion,
-      progressPercentage,
       selectAnswer,
       nextQuestion,
       previousQuestion,
       submitQuiz,
-      showFeedback, // Nu computed
-      isCorrect     // Nu computed
+      showFeedback,
+      isCorrect,
+      correctAnswerText, // Exponera för att visa hint
+      getAnswerClasses // Exponera den nya funktionen
     }
   }
 }
@@ -342,19 +384,41 @@ export default {
   justify-content: center;
 }
 
-.progress-bar {
+/* NEW: Styles for Segmented Progress Bar */
+.segmented-progress-bar {
+  display: flex;
   width: 300px;
   height: 8px;
-  background-color: #30363d;
+  background-color: #30363d; /* Default background for unanswered/empty */
   border-radius: 4px;
   overflow: hidden;
+  gap: 2px; /* Small gap between segments for visual clarity */
 }
 
-.progress-fill {
+.progress-segment {
+  flex-grow: 1; /* Makes all segments take equal width */
   height: 100%;
-  background: linear-gradient(90deg, #00ff88, #00c2ff);
-  transition: width 0.3s ease;
+  background-color: #30363d; /* Default/Unanswered color */
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  border-radius: 2px; /* Slight rounding for each segment */
 }
+
+.progress-segment.segment-correct {
+  background-color: #00ff88; /* Green for Correct */
+}
+
+.progress-segment.segment-wrong {
+  background-color: #e53e3e; /* Red for Wrong */
+}
+
+.progress-segment.segment-current {
+  /* Blue highlight for the currently viewed question */
+  background-color: #00c2ff;
+  box-shadow: 0 0 5px rgba(0, 194, 255, 0.8);
+}
+/* END NEW Styles for Segmented Progress Bar */
+
+/* The old .progress-bar and .progress-fill styles are removed */
 
 .progress-text {
   font-weight: bold;
@@ -402,14 +466,38 @@ export default {
   transform: translateY(-2px);
 }
 
+/* 1. Klass för valt alternativ FÖRE bedömning */
 .answer-option.selected {
-  border-color: #00ff88;
+  border-color: #00ff88; /* Grön kant som tidigare vid val */
   background: rgba(0, 255, 136, 0.08);
 }
 
+/* 2. Klass för RÄTT svar EFTER bedömning (om det är valt) */
+.answer-option.selected-correct {
+  border-color: #00ff88;
+  background: rgba(0, 255, 136, 0.15); /* Tydligare grön bakgrund */
+  cursor: default;
+}
+
+/* 3. Klass för FEL svar EFTER bedömning (om det är valt) */
+.answer-option.selected-wrong {
+  border-color: #e53e3e; /* Röd kant */
+  background: rgba(229, 62, 62, 0.15); /* Tydligare röd bakgrund */
+  cursor: default;
+}
+
+/* 4. Klass för att visa HINT (det rätta svaret) när ett fel svar valdes */
+.answer-option.correct-hint {
+  border-color: #7cfd39; /* Blå kant */
+  background: rgba(0, 194, 255, 0.08);
+  cursor: default;
+}
+
+
+/* Added logic to disable answer options if already answered */
 .answer-option.disabled {
   cursor: not-allowed;
-  opacity: 0.5;
+  opacity: 0.6; /* Slight reduction in opacity */
 }
 
 .answer-radio {
@@ -424,7 +512,18 @@ export default {
   transition: all 0.3s ease;
 }
 
-.radio-circle.checked {
+/* Uppdatera radio-cirkeln för att matcha färgerna */
+.answer-option.selected-correct .radio-circle.checked {
+  border-color: #00ff88;
+  background: #00ff88;
+}
+
+.answer-option.selected-wrong .radio-circle.checked {
+  border-color: #e53e3e;
+  background: #e53e3e;
+}
+
+.answer-option.selected .radio-circle.checked {
   border-color: #00ff88;
   background: #00ff88;
   position: relative;
@@ -524,5 +623,16 @@ export default {
   border: 2px solid #e53e3e;
   margin-bottom: 1rem;
 }
-</style>
 
+/* NY: Visar rätt svar när man svarat fel */
+.correct-answer-hint {
+  text-align: center;
+  font-size: 1rem;
+  padding: 0.5rem;
+  margin-bottom: 1rem;
+  border-radius: 8px;
+  background-color: rgba(0, 194, 255, 0.1);
+  color: #318d02;
+  border: 1px solid #266c01;
+}
+</style>

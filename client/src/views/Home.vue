@@ -7,57 +7,6 @@
           <p>Test your cybersecurity knowledge with our interactive quizzes</p>
         </div>
       </div>
-<!--
-      Overall Progress Card
-      <div class="progress-overview" v-if="quizzes.length > 0">
-        <div class="progress-header">
-          <div class="header-placeholder"></div>
-          <div class="header-title-container">
-            <h2>📊 Your Progress</h2>
-          </div>
-          <button @click="showResetModal = true" class="btn-progress-reset" title="Reset your progress">
-            🔄 Reset Progress
-          </button>
-        </div>
-        <div class="progress-stats">
-          <div class="stat-card">
-            <div class="stat-info">
-              <div class="stat-value">{{ completedTheoryCount }}</div>
-              <div class="stat-label">Theories Completed</div>
-            </div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-info">
-              <div class="stat-value">{{ completedQuizzesCount }}</div>
-              <div class="stat-label">Quizzes Completed</div>
-            </div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-info">
-              <div class="stat-value">{{ overallPercentage }}%</div>
-              <div class="stat-label">Overall Progress</div>
-            </div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-info">
-              <div class="stat-value">{{ totalAttempts }}</div>
-              <div class="stat-label">Total Attempts</div>
-            </div>
-          </div>
-        </div>
-        <div class="progress-overview" v-if="quizzes.length > 0">
-          <div class="progress-bar-container">
-            <div class="progress-bar" :style="{ width: overallPercentage + '%' }">
-            </div>
-
-            <div class="progress-text-overlay">
-              {{ overallPercentage }}%
-            </div>
-          </div>
-        </div>
-      </div>
-
-      -->
 
       <div v-if="loading" class="loading">
         <p>Loading quizzes...</p>
@@ -80,7 +29,6 @@
             <span class="question-count">{{ quiz.total_questions }} questions</span>
           </div>
           <div class="quiz-actions">
-
 
 
             <!-- Read Theory Button -->
@@ -188,6 +136,7 @@ export default {
       if (allQuizzesCompleted.value) {
         const key = getDiplomaKey()
         if (!localStorage.getItem(key)) {
+          // OBS: Ersatt alert() med att sätta showDiplomaModal till true.
           showDiplomaModal.value = true
           localStorage.setItem(key, '1')
         }
@@ -207,7 +156,8 @@ export default {
     const goToTheory = (quizId) => router.push(`/quiz/${quizId}/theory`)
     const startQuiz = (quizId) => {
       if (!completedTheory.value[quizId]) {
-        alert('Please complete the theory first!')
+        // OBS: Ersatt alert() med console.error för att undvika fönster.alert
+        console.error('Please complete the theory first!')
         return
       }
       router.push(`/quiz/${quizId}`)
@@ -266,7 +216,8 @@ export default {
       try {
         const userId = currentUser.value?.id
         if (!userId) {
-          alert('You must be logged in')
+          console.error('You must be logged in to reset progress.')
+          showResetModal.value = false; // Stäng modalen
           return
         }
 
@@ -283,13 +234,13 @@ export default {
           await fetchUserProgress()
           await fetchUserAttempts()
 
-          alert('✅ Progress reset successfully!')
+          // I en riktig app skulle man visa en notis här istället för alert.
+          console.log('✅ Progress reset successfully!')
         } else {
-          alert('❌ Failed to reset: ' + (response.message || 'Unknown error'))
+          console.error('❌ Failed to reset: ' + (response.message || 'Unknown error'))
         }
       } catch (error) {
         console.error('Network error:', error)
-        alert('❌ Network error: ' + error.message)
       }
     }
 
@@ -357,15 +308,14 @@ export default {
 
 .home {
   text-align: center;
-  background-color: #0D1117; /* Night Code */
-  color: #E6EDF3; /* Soft White */
-  min-height: 100vh;
+  /* Home-bakgrunden ärvs från body och hanteras i App.vue */
 }
 
 .hero {
   margin-bottom: 3rem;
 }
 
+/* Centrerar header-texten */
 .header-section {
   display: flex;
   justify-content: center;
@@ -378,39 +328,53 @@ export default {
 
 .hero h1 {
   font-size: 3rem;
-  color: #00A3FF; /* Cyber Blue */
-  text-shadow: 0 0 12px rgba(0, 163, 255, 0.3);
+  color: var(--color-text-h1-home); /* Dynamisk färg */
   margin-bottom: 0.5rem;
+  text-align: center;
+  /* Dark Mode Shadow */
+  text-shadow: 0 0 12px rgba(0, 163, 255, 0.3);
+  transition: color 0.3s ease;
 }
 
 .hero p {
   font-size: 1.2rem;
-  color: #8B949E; /* Slate Gray */
+  color: var(--color-text-p-home); /* Dynamisk färg */
+  text-align: center;
   margin-bottom: 0;
+  transition: color 0.3s ease;
 }
 
 /* ========================================================================= */
 /* --- 2. PROGRESS OVERVIEW (KORTET) --- */
 /* ========================================================================= */
 
+/* Denna klass, som nu är överflödig, tas bort för att rensa upp CSS:en */
+/*
 .progress-overview {
-  background: #161B22; /* Dark Panel */
+  background: var(--color-bg-card);
   border-radius: 16px;
   padding: 2rem;
   margin: 2rem 0;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-  border: 1px solid #21262D; /* Graphite */
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  border: var(--color-border-card);
+  transition: all 0.3s ease;
 }
+*/
 
+/* FIX & STYLING: Progress Header med Reset-knapp (CSS behålls, men är inte aktiv utan kortet) */
+/*
 .progress-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1.5rem;
   padding-bottom: 0.5rem;
-  border-bottom: 1px solid #21262D;
+  border-bottom: var(--color-border-card);
 }
+*/
 
+/* Hela Progress Stats CSS-block tas bort */
+/*
 .header-placeholder {
   flex-basis: 150px;
   opacity: 0;
@@ -423,10 +387,11 @@ export default {
 }
 
 .progress-header h2 {
-  color: #00FFB3; /* Neon Green */
+  color: var(--color-text-h2-progress);
   font-size: 1.8rem;
-  text-shadow: 0 0 10px rgba(0, 255, 179, 0.3);
   margin: 0;
+  text-shadow: 0 0 10px rgba(0, 255, 179, 0.3);
+  transition: color 0.3s ease;
 }
 
 .btn-progress-reset {
@@ -450,18 +415,19 @@ export default {
   box-shadow: 0 0 18px rgba(255, 76, 76, 0.7);
   transform: translateY(-2px);
 }
+*/
 
-/* Progress Stats Cards */
+/* Progress Stats Cards - Dessa klasser är nu överflödiga */
+/*
 .progress-stats {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 1rem;
-  margin-bottom: 2rem;
+  margin-bottom: 0;
 }
 
 .stat-card {
-  background: #0D1117;
-  border: 1px solid #21262D;
+  background: var(--color-bg-stat-card);
   border-radius: 12px;
   padding: 1.5rem;
   display: flex;
@@ -470,67 +436,35 @@ export default {
   text-align: center;
   gap: 0.5rem;
   transition: all 0.3s ease;
+  border: 2px solid transparent;
 }
 
 .stat-card:hover {
   transform: translateY(-5px);
-  border-color: #00A3FF;
-  box-shadow: 0 0 12px rgba(0, 163, 255, 0.4);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  border-color: var(--color-border-stat-hover);
 }
 
 .stat-value {
   font-size: 2.5rem;
   font-weight: 700;
-  color: #00FFB3; /* Neon Green */
+  color: var(--color-text-stat-value);
   line-height: 1;
+  margin-bottom: 0.5rem;
+  transition: color 0.3s ease;
 }
 
 .stat-label {
   font-size: 0.9rem;
-  color: #8B949E;
+  color: var(--color-text-stat-label);
   font-weight: 500;
+  transition: color 0.3s ease;
 }
+*/
 
-/* Progress Bar */
-.progress-bar-container {
-  background: #21262D;
-  border-radius: 12px;
-  height: 40px;
-  overflow: hidden;
-  position: relative;
-}
 
-.progress-bar {
-  background: linear-gradient(90deg, #00A3FF, #00FFB3);
-  height: 100%;
-  transition: width 1s ease-out;
-  box-shadow: 0 0 12px rgba(0, 255, 179, 0.4);
-  position: relative;
-}
+/* Progress Bar CSS har tagits bort i förra steget, men dessa block rensar upp relaterade, nu oanvända stilar */
 
-.progress-bar::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-  animation: shimmer 2s infinite;
-}
-
-@keyframes shimmer {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(100%); }
-}
-
-.progress-text-overlay {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  font-size: 1.1rem;
-  color: #E6EDF3;
-}
 
 /* ========================================================================= */
 /* --- 3. QUIZ MODULES --- */
@@ -544,30 +478,32 @@ export default {
 }
 
 .module-card {
-  background: #161B22;
-  border: 1px solid #21262D;
+  background: var(--color-bg-card); /* Dynamisk färg */
   padding: 2rem;
   border-radius: 12px;
-  box-shadow: 0 0 12px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
   transition: all 0.3s ease;
   position: relative;
+  border: var(--color-border-card); /* Dynamisk färg */
 }
 
 .module-card:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 0 20px rgba(0, 163, 255, 0.3);
+  transform: translateY(-8px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
 }
 
 .module-card h3 {
-  color: #00A3FF;
+  color: var(--color-text-card-h3); /* Dynamisk färg */
   margin-bottom: 1rem;
   font-size: 1.5rem;
+  transition: color 0.3s ease;
 }
 
 .module-card p {
-  color: #C9D1D9;
+  color: var(--color-text-card-p); /* Dynamisk färg */
   margin-bottom: 1rem;
   line-height: 1.6;
+  transition: color 0.3s ease;
 }
 
 .quiz-info {
@@ -578,17 +514,20 @@ export default {
 }
 
 .quiz-type {
-  background: #00A3FF;
-  color: #fff;
+  background-color: var(--color-bg-quiz-type); /* Dynamisk färg */
+  color: white;
   padding: 0.4rem 0.8rem;
   border-radius: 6px;
   font-weight: 600;
   text-transform: uppercase;
   font-size: 0.75rem;
+  transition: background-color 0.3s ease;
 }
 
 .question-count {
-  color: #8B949E;
+  color: var(--color-text-question-count); /* Dynamisk färg */
+  font-weight: 500;
+  transition: color 0.3s ease;
 }
 
 .quiz-actions {
@@ -606,49 +545,45 @@ export default {
   font-size: 0.95rem;
   font-weight: 600;
   transition: all 0.3s ease;
-}
-
-/* --- Primary Button --- */
-.btn-primary {
-  background: linear-gradient(135deg, #00A3FF, #00FFB3);
-  color: #0D1117;
-  font-weight: 700;
-  box-shadow: 0 0 8px rgba(0, 255, 179, 0.3);
-}
-
-.btn-primary:hover:not(:disabled) {
-  box-shadow: 0 0 16px rgba(0, 255, 179, 0.6);
-  transform: translateY(-2px);
-}
-
-/* --- Secondary Button --- */
-.btn-secondary {
-  background: #6C63FF;
   color: white;
 }
 
-.btn-secondary:hover {
-  background: #7E72FF;
-  box-shadow: 0 0 10px rgba(108, 99, 255, 0.4);
-  transform: translateY(-2px);
+.btn-primary {
+  background: var(--color-bg-btn-primary); /* Dynamisk färg */
 }
 
+.btn-primary:hover:not(:disabled) {
+  background: var(--color-bg-btn-primary-hover); /* Dynamisk färg */
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0, 163, 255, 0.3);
+}
+
+.btn-secondary {
+  background: var(--color-bg-btn-secondary); /* Dynamisk färg */
+}
+
+
+.btn-secondary:hover:not(:disabled) {
+  background: var(--color-bg-btn-secondary-hover); /* Dynamisk färg */
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(46, 204, 113, 0.3);
+}
+
+
 .btn:disabled {
-  background-color: #3A3F47;
+  background-color: #bdc3c7;
   cursor: not-allowed;
   opacity: 0.6;
 }
 
-/* Progress Badge */
 .progress-badge {
-  background: linear-gradient(135deg, #00FFB3, #00A36C);
-  color: #0D1117;
+  background: var(--color-bg-progress-badge); /* Dynamisk färg */
+  color: white;
   padding: 0.5rem;
   border-radius: 6px;
   font-size: 0.85rem;
   font-weight: 600;
   margin-top: 0.5rem;
-  box-shadow: 0 0 10px rgba(0, 255, 179, 0.3);
 }
 
 /* ========================================================================= */
@@ -658,73 +593,116 @@ export default {
 .loading, .error {
   padding: 2rem;
   font-size: 1.1rem;
+  transition: color 0.3s ease;
 }
 
-.loading { color: #00A3FF; }
-.error { color: #FF4C4C; }
+.loading {
+  color: var(--color-loading);
+}
 
+.error {
+  color: #e74c3c;
+}
+
+/* Modal Styles */
 .modal-overlay {
   position: fixed;
-  inset: 0;
-  background: rgba(13, 17, 23, 0.9);
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--color-bg-modal-overlay); /* Dynamisk färg */
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1000;
-  backdrop-filter: blur(6px);
+  backdrop-filter: blur(4px);
+  transition: background 0.3s ease;
 }
 
 .modal-content {
   position: relative;
-  background: white;
+  background: var(--color-bg-card); /* Dynamisk färg */
   padding: 2.5rem;
   border-radius: 16px;
   max-width: 500px;
   width: 90%;
-  box-shadow: 0 0 25px rgba(0, 163, 255, 0.3);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
   animation: slideIn 0.3s ease-out;
-  color: #E6EDF3;
+  border: var(--color-border-card);
+  transition: background 0.3s ease;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .modal-content h2 {
-  color: #FF4C4C;
+  color: var(--color-text-modal-h2); /* Dynamisk färg */
+  margin-bottom: 1rem;
+  font-size: 1.8rem;
+  transition: color 0.3s ease;
 }
 
 .modal-content p {
-  color: #E6EDF3;
+  color: var(--color-text-modal-p); /* Dynamisk färg */
+  margin-bottom: 1rem;
+  font-size: 1.1rem;
+  transition: color 0.3s ease;
 }
 
 .warning-text {
-  color: #FF4C4C;
+  color: var(--color-text-modal-h2); /* Återanvänd färg */
   font-weight: 600;
+  margin-top: 1rem;
+}
+
+.reset-list {
+  text-align: left;
+  margin: 1rem 0;
+  padding-left: 1.5rem;
 }
 
 .reset-list li {
-  color: #8B949E;
+  color: var(--color-text-card-p); /* Dynamisk färg */
+  margin: 0.5rem 0;
+  font-size: 0.95rem;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 2rem;
 }
 
 .btn-cancel {
   flex: 1;
-  background: #21262D;
-  color: #E6EDF3;
-  border: 1px solid #3A3F47;
+  background-color: #95a5a6;
+  color: white;
 }
 
 .btn-cancel:hover {
-  background: #2A313A;
+  background-color: #7f8c8d;
 }
 
 .btn-danger {
   flex: 1;
-  background: linear-gradient(135deg, #FF4C4C, #C62828);
+  background: linear-gradient(135deg, #e74c3c, #c0392b);
   color: white;
-  font-weight: 600;
 }
 
 .btn-danger:hover {
-  box-shadow: 0 0 15px rgba(255, 76, 76, 0.6);
+  background: linear-gradient(135deg, #c0392b, #a93226);
   transform: translateY(-2px);
 }
+
 
 /* ========================================================================= */
 /* --- 5. RESPONSIVE --- */
@@ -736,13 +714,46 @@ export default {
 }
 
 @media (max-width: 768px) {
+  .header-section {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .hero h1 {
+    font-size: 2rem;
+  }
+
+  /* Säkrar att progress-header staplar på mobil */
+  /*
   .progress-header {
     flex-direction: column;
     align-items: center;
   }
+
+  .progress-header h2 {
+    margin-bottom: 0.75rem;
+  }
+  */
+
+  .quiz-actions {
+    flex-direction: column;
+  }
+
+  .modal-content {
+    padding: 1.5rem;
+  }
+
+  /*
   .progress-stats {
     grid-template-columns: repeat(2, 1fr);
   }
+
+  .btn-progress-reset {
+    flex-basis: auto;
+    width: 100%;
+    margin-top: 1rem;
+    justify-content: center;
+  }
+  */
 }
 </style>
-
