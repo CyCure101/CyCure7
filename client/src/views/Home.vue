@@ -345,128 +345,6 @@ export default {
 }
 
 /* ========================================================================= */
-/* --- 2. PROGRESS OVERVIEW (KORTET) --- */
-/* ========================================================================= */
-
-/* Denna klass, som nu är överflödig, tas bort för att rensa upp CSS:en */
-/*
-.progress-overview {
-  background: var(--color-bg-card);
-  border-radius: 16px;
-  padding: 2rem;
-  margin: 2rem 0;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-  border: var(--color-border-card);
-  transition: all 0.3s ease;
-}
-*/
-
-/* FIX & STYLING: Progress Header med Reset-knapp (CSS behålls, men är inte aktiv utan kortet) */
-/*
-.progress-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-  padding-bottom: 0.5rem;
-  border-bottom: var(--color-border-card);
-}
-*/
-
-/* Hela Progress Stats CSS-block tas bort */
-/*
-.header-placeholder {
-  flex-basis: 150px;
-  opacity: 0;
-  visibility: hidden;
-}
-
-.header-title-container {
-  flex-grow: 1;
-  text-align: center;
-}
-
-.progress-header h2 {
-  color: var(--color-text-h2-progress);
-  font-size: 1.8rem;
-  margin: 0;
-  text-shadow: 0 0 10px rgba(0, 255, 179, 0.3);
-  transition: color 0.3s ease;
-}
-
-.btn-progress-reset {
-  flex-basis: 159px;
-  display: flex;
-  justify-content: flex-end;
-  background: linear-gradient(135deg, #FF4C4C, #C62828);
-  color: white;
-  border: none;
-  padding: 0.75rem 1.5rem;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 0.8rem;
-  font-weight: 600;
-  transition: all 0.3s ease;
-  box-shadow: 0 0 10px rgba(255, 76, 76, 0.5);
-}
-
-.btn-progress-reset:hover {
-  background: linear-gradient(135deg, #FF6B6B, #E53935);
-  box-shadow: 0 0 18px rgba(255, 76, 76, 0.7);
-  transform: translateY(-2px);
-}
-*/
-
-/* Progress Stats Cards - Dessa klasser är nu överflödiga */
-/*
-.progress-stats {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-  margin-bottom: 0;
-}
-
-.stat-card {
-  background: var(--color-bg-stat-card);
-  border-radius: 12px;
-  padding: 1.5rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  gap: 0.5rem;
-  transition: all 0.3s ease;
-  border: 2px solid transparent;
-}
-
-.stat-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-  border-color: var(--color-border-stat-hover);
-}
-
-.stat-value {
-  font-size: 2.5rem;
-  font-weight: 700;
-  color: var(--color-text-stat-value);
-  line-height: 1;
-  margin-bottom: 0.5rem;
-  transition: color 0.3s ease;
-}
-
-.stat-label {
-  font-size: 0.9rem;
-  color: var(--color-text-stat-label);
-  font-weight: 500;
-  transition: color 0.3s ease;
-}
-*/
-
-
-/* Progress Bar CSS har tagits bort i förra steget, men dessa block rensar upp relaterade, nu oanvända stilar */
-
-
-/* ========================================================================= */
 /* --- 3. QUIZ MODULES --- */
 /* ========================================================================= */
 
@@ -723,17 +601,7 @@ export default {
     font-size: 2rem;
   }
 
-  /* Säkrar att progress-header staplar på mobil */
-  /*
-  .progress-header {
-    flex-direction: column;
-    align-items: center;
-  }
 
-  .progress-header h2 {
-    margin-bottom: 0.75rem;
-  }
-  */
 
   .quiz-actions {
     flex-direction: column;
@@ -743,17 +611,100 @@ export default {
     padding: 1.5rem;
   }
 
-  /*
-  .progress-stats {
-    grid-template-columns: repeat(2, 1fr);
+
+}
+
+/* ---  RESPONSIVE MEDIA QUERIES --- */
+
+/* --- Tablet (max-width: 768px) --- */
+@media (max-width: 768px) {
+  .hero h1 {
+    font-size: 2.3rem;
   }
 
-  .btn-progress-reset {
-    flex-basis: auto;
-    width: 100%;
-    margin-top: 1rem;
-    justify-content: center;
+  .hero p {
+    font-size: 1rem;
   }
-  */
+
+  .quiz-modules {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .module-card {
+    padding: 1.5rem;
+  }
+
+  .quiz-actions {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .modal-content {
+    padding: 1.5rem;
+    width: 90%;
+  }
+
+  .modal-content h2 {
+    font-size: 1.5rem;
+  }
+
+  .modal-content p {
+    font-size: 1rem;
+  }
 }
+
+/* --- Mobile (max-width: 480px) --- */
+@media (max-width: 480px) {
+  .hero h1 {
+    font-size: 1.8rem;
+    line-height: 1.2;
+  }
+
+  .hero p {
+    font-size: 0.95rem;
+    padding: 0 1rem;
+  }
+
+  .module-card {
+    padding: 1rem;
+  }
+
+  .module-card h3 {
+    font-size: 1.2rem;
+  }
+
+  .module-card p {
+    font-size: 0.9rem;
+  }
+
+  .quiz-info {
+    flex-direction: column;
+    gap: 0.4rem;
+    text-align: left;
+  }
+
+  .btn {
+    font-size: 0.9rem;
+    padding: 0.6rem 1rem;
+  }
+
+  .progress-badge {
+    font-size: 0.8rem;
+  }
+
+  .modal-content {
+    width: 95%;
+    padding: 1.2rem;
+  }
+
+  .modal-actions {
+    flex-direction: column;
+  }
+
+  .modal-actions button {
+    width: 100%;
+  }
+}
+
 </style>

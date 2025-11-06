@@ -721,4 +721,123 @@ h1 {
     flex-direction: column;
   }
 }
+
+/* ========== RESPONSIVE ========== */
+
+/* Tablets (max-width: 768px) */
+@media (max-width: 768px) {
+  .theory-page {
+    padding: 1.5rem;
+  }
+
+  .theory-card {
+    padding: 1.5rem;
+    max-width: 100%;
+  }
+
+  h1 {
+    font-size: 1.8rem;
+  }
+
+  .description {
+    font-size: 0.95rem;
+  }
+
+  .video-section {
+    padding: 1rem;
+  }
+
+  .flip-cards-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .flip-card {
+    height: 160px;
+  }
+
+  .quiz-options {
+    gap: 0.5rem;
+  }
+
+  .navigation-buttons {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .btn-nav,
+  .btn-complete {
+    width: 100%;
+    padding: 0.65rem 1rem;
+    font-size: 0.9rem;
+  }
+
+  .tip-box {
+    padding: 1rem;
+  }
+}
+
+/* Mobiler (max-width: 480px) */
+@media (max-width: 480px) {
+  .theory-page {
+    padding: 1rem;
+  }
+
+  .theory-card {
+    padding: 1rem;
+    border-radius: 12px;
+  }
+
+  h1 {
+    font-size: 1.5rem;
+  }
+
+  .description {
+    font-size: 0.9rem;
+  }
+
+  .video-section {
+    padding: 0.8rem;
+  }
+
+  .video-wrapper {
+    padding-bottom: 56.25%;
+    max-height: 220px;
+  }
+
+  .flip-cards-grid {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+
+  .flip-card {
+    height: 140px;
+  }
+
+  .quiz-options button {
+    font-size: 0.85rem;
+    padding: 0.6rem;
+  }
+
+  .navigation-buttons {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .btn-nav,
+  .btn-complete {
+    width: 100%;
+    font-size: 0.85rem;
+    padding: 0.6rem;
+  }
+
+  .tip-box {
+    padding: 1rem;
+    font-size: 0.9rem;
+  }
+
+  .progress-text {
+    font-size: 0.8rem;
+  }
+}
 </style>
