@@ -118,17 +118,18 @@ export default {
 }
 
 .auth-card {
-  background: white;
+  background: #161B22; /* dark mode card */
+  color: #E6EDF3;      /* dark mode text */
   padding: 2rem;
   border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 10px rgba(0, 255, 179, 0.2);
   width: 100%;
   max-width: 400px;
 }
 
 .auth-card h2 {
   text-align: center;
-  color: #2c3e50;
+  color: #00A3FF; /* dark mode heading */
   margin-bottom: 2rem;
 }
 
@@ -143,21 +144,23 @@ export default {
 .form-group label {
   display: block;
   margin-bottom: 0.5rem;
-  color: #2c3e50;
+  color: #E6EDF3; /* dark mode label */
   font-weight: bold;
 }
 
 .form-input {
   width: 100%;
   padding: 0.75rem;
-  border: 1px solid #ddd;
+  border: 1px solid #21262D; /* dark mode border */
   border-radius: 4px;
   font-size: 1rem;
+  background: #161B22; /* dark mode background */
+  color: #E6EDF3;      /* dark mode text */
 }
 
 .form-input:focus {
   outline: none;
-  border-color: #3498db;
+  border-color: #00A3FF; /* highlight color */
 }
 
 .btn {
@@ -171,12 +174,12 @@ export default {
 }
 
 .btn-primary {
-  background-color: #3498db;
-  color: white;
+  background: linear-gradient(135deg, #00A3FF, #00FFB3);
+  color: #0D1117;
 }
 
 .btn-primary:hover:not(:disabled) {
-  background-color: #2980b9;
+  background: linear-gradient(135deg, #00FFB3, #00A3FF);
 }
 
 .btn:disabled {
@@ -185,8 +188,8 @@ export default {
 }
 
 .error-message {
-  background-color: #e74c3c;
-  color: white;
+  background-color: #FF4C4C;
+  color: #0D1117;
   padding: 0.75rem;
   border-radius: 4px;
   margin-bottom: 1rem;
@@ -195,7 +198,7 @@ export default {
 
 .success-message {
   background-color: #27ae60;
-  color: white;
+  color: #0D1117;
   padding: 0.75rem;
   border-radius: 4px;
   margin-bottom: 1rem;
@@ -204,11 +207,11 @@ export default {
 
 .auth-footer {
   text-align: center;
-  color: #7f8c8d;
+  color: #8B949E;
 }
 
 .auth-footer a {
-  color: #3498db;
+  color: #00A3FF;
   text-decoration: none;
 }
 

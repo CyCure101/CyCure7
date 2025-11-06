@@ -10,10 +10,16 @@
       </button>
     </div>
 
+
+
     <div class="progress-bar-container">
       <!-- Fixed: The inner progress bar now uses a dynamic CSS variable. -->
       <div class="progress-bar" :style="{ width: overallPercentage + '%' }"></div>
       <div class="progress-text-overlay">{{ overallPercentage }}%</div>
+    </div>
+
+    <div v-if="overallPercentage === 100" class="completion-message">
+      🎉 You have completed all your quizzes, and are now Cycure! 🚀
     </div>
 
     <!-- Two-column layout: main + aside -->
@@ -246,7 +252,7 @@ export default {
   max-width: 1200px;
   margin: 0 auto;
   padding: 2rem;
-  color: var(--color-text); /* Dynamisk textfärg */
+
 }
 
 /* --- PROGRESS BAR HEADER (FÖR KNAPPEN) --- */
@@ -298,8 +304,32 @@ export default {
   border-radius: 12px;
   padding: 2rem;
   border: var(--color-border-card); /* Dynamisk kantlinje */
-  box-shadow: 0 0 20px var(--color-shadow-card);
+  box-shadow: 0 0 20px;
   height: 100%;
+}
+
+.completion-message {
+  margin-bottom: .1rem;
+  padding: 1rem 1.5rem;
+  background: linear-gradient(135deg, #00A3FF, #00FFB3);
+  color: #0D1117;
+  font-weight: 700;
+  font-size: 1rem;
+  text-align: center;
+  border-radius: 12px;
+  box-shadow: 0 0 12px rgba(0, 255, 179, 0.4);
+  animation: popIn 0.5s ease-out;
+}
+
+@keyframes popIn {
+  0% {
+    transform: scale(0.7);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 /* --- ASIDE CONTENT (PROGRESS STATS) --- */
@@ -331,11 +361,9 @@ export default {
 .stat-value {
   font-size: 2rem;
   font-weight: 700;
-  color: var(--color-accent); /* Dynamisk accentfärg */
 }
 .stat-label {
   font-size: 0.9rem;
-  color: var(--color-text-secondary); /* Dynamisk sekundär textfärg */
 }
 
 /* --- TABLE --- */
@@ -363,8 +391,6 @@ export default {
   background-image: var(--color-gradient-table-header);
 }
 .results-table td {
-  color: var(--color-text); /* Dynamisk textfärg */
-  /* FIX: Säkerställer att cell-bakgrunden är dynamisk */
   background: var(--color-bg-table-cell);
 }
 .results-table tr:hover td {
@@ -383,7 +409,6 @@ export default {
 }
 .btn-primary {
   background: var(--color-bg-btn-primary);
-  color: var(--color-text-btn-primary);
 }
 .btn-primary:hover {
   background: var(--color-bg-btn-primary-hover);
@@ -392,8 +417,7 @@ export default {
 .progress-overview-header h2 {
   font-size: 1.6rem;
   font-weight: 700;
-  color: var(--color-accent-secondary);
-  text-shadow: 0 0 8px var(--color-shadow-accent-secondary);
+  text-shadow: 0 0 8px;
   margin: 0;
   letter-spacing: 0.5px;
 }

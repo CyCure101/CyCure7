@@ -1,7 +1,7 @@
 <template>
   <div id="app">
     <!-- only render nav after auth is checked -->
-    <nav class="navbar" v-if="checkedAuth">
+    <nav class="navbar" v-if="checkedAuth && !['/login', '/register'].includes(route.path)">
       <div class="nav-brand">
         <img src="./assets/logo.png" alt="CyCure Logo" class="logo"/>
         <h1>CyCure</h1>
@@ -53,7 +53,7 @@
 
 <script>
 import {ref, onMounted, watch} from 'vue'
-import {useRouter} from 'vue-router'
+import {useRouter, useRoute} from 'vue-router'
 import apiService from './services/apiService'
 import {isLoggedIn, currentUser} from '../auth'
 
@@ -61,13 +61,23 @@ export default {
   name: 'App',
   setup() {
     const router = useRouter()
+    const route = useRoute()
     const checkedAuth = ref(false)
 
     // Läs initialt tema från Local Storage, annars Light Mode (false) som standard.
     const isDarkMode = ref(localStorage.getItem('theme') === 'dark')
 
+    watch(route, () => {
+      applyTheme(isDarkMode.value)
+    })
+
     // Funktion för att applicera/ta bort 'dark-mode' klassen på BODY
     const applyTheme = (isDark) => {
+      if (['/login', '/register'].includes(route.path)) {
+        document.body.classList.add('dark-mode')
+        return
+      }
+
       if (isDark) {
         document.body.classList.add('dark-mode')
         localStorage.setItem('theme', 'dark')
@@ -122,7 +132,7 @@ export default {
       checkAuth()
     })
 
-    return {isLoggedIn, currentUser, logout, checkedAuth, isDarkMode, toggleTheme}
+    return {isLoggedIn, currentUser, logout, checkedAuth, isDarkMode, toggleTheme, route}
   }
 }
 </script>
@@ -317,10 +327,6 @@ body {
   transition: transform 0.3s ease, filter 0.3s ease, height 0.3s ease;
 }
 
-.logo:hover {
-  transform: scale(1.08);
-  filter: drop-shadow(0 0 15px rgba(0, 255, 179, 0.5)); /* Dark-inspired hover */
-}
 
 .nav-brand h1 {
   font-size: 1.8rem;
