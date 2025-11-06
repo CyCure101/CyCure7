@@ -551,52 +551,124 @@ export default {
 /* --- 3. RESPONSIVE --- */
 /* ========================================================================= */
 
-@media (max-width: 992px) {
-  .content-grid {
-    grid-template-columns: 1fr;
-  }
-  .progress-stats {
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: space-between;
-  }
-  .stat-card {
-    flex: 1 1 45%;
-  }
-}
-
+/* --- Tablet (max-width: 768px) --- */
 @media (max-width: 768px) {
-  .progress-header-container {
-    flex-direction: column;
-    align-items: flex-start;
+  .results-page {
+    padding: 1rem;
   }
-  .progress-overview-header {
-    width: 100%;
-  }
-  .progress-header-container h2 {
-    text-align: left;
-    margin-bottom: 1rem;
-  }
-  .btn-progress-reset {
-    width: 100%;
-    justify-content: center;
-    padding: 0.6rem;
-  }
-  .progress-stats {
-    flex-direction: column;
-  }
-  .stat-card {
-    flex: 1 1 100%;
-  }
-}
 
-@media (max-width: 480px) {
-  .progress-overview-header h2 {
-    font-size: 1.2rem;
-    margin-bottom: 0.5rem;
+  .results-card {
+    padding: 1.5rem;
   }
+
+  .results-table th,
+  .results-table td {
+    padding: 0.5rem;
+    font-size: 0.9rem;
+  }
+
+  .results-table th:nth-child(1),
+  .results-table td:nth-child(1),
+  .results-table th:nth-child(6),
+  .results-table td:nth-child(6) {
+    display: none; /* Dölj Attempt och Date på mindre skärm */
+  }
+
+  .completion-message {
+    font-size: 0.95rem;
+    padding: 0.8rem 1rem;
+  }
+
   .progress-bar-container {
     height: 30px;
+  }
+
+  .btn-progress-reset {
+    font-size: 0.85rem;
+    padding: 0.6rem 1rem;
+  }
+}
+
+/* --- Mobile (max-width: 480px) --- */
+@media (max-width: 480px) {
+
+  .main-content{
+    display: flex;
+    justify-content: center;
+  }
+  .results-page {
+    padding: 0.8rem;
+  }
+
+  .progress-header-container {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.6rem;
+  }
+
+  .progress-header-container h2 {
+    text-align: center;
+    font-size: 1.2rem;
+  }
+
+  .btn-progress-reset {
+    width: 100%;
+    font-size: 0.85rem;
+    justify-content: center;
+  }
+
+  .results-card {
+    width: 100%;
+    max-width: 95%;
+    margin: 0 auto;
+  }
+
+  .results-card h1 {
+    font-size: 1.3rem;
+    text-align: center;
+  }
+
+  .results-table {
+    font-size: 0.8rem;
+  }
+
+  .results-table th:nth-child(2),
+  .results-table td:nth-child(2) {
+    text-align: left;
+  }
+
+  .results-table th:nth-child(3),
+  .results-table th:nth-child(4),
+  .results-table td:nth-child(3),
+  .results-table td:nth-child(4) {
+    display: none; /* Dölj Score och Total på små skärmar */
+  }
+
+  .stat-card {
+    padding: 0.8rem;
+
+  }
+
+  .stat-value {
+    font-size: 1.4rem;
+  }
+
+  .stat-label {
+    font-size: 0.8rem;
+  }
+
+  .modal-content {
+    width: 95%;
+    padding: 1.5rem;
+  }
+
+  .modal-actions {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .modal-actions button {
+    width: 100%;
   }
 }
 </style>

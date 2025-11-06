@@ -224,4 +224,88 @@ export default {
     padding: 0.6rem 1rem;
   }
 }
+
+/* ========== RESPONSIVE ========== */
+
+/* Tablets (max-width: 768px) */
+@media (max-width: 768px) {
+  .results-container {
+    padding: 1.5rem;
+  }
+
+  .results-card h1 {
+    font-size: 1.8rem;
+  }
+
+  .summary {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .metric {
+    padding: 0.9rem;
+  }
+
+  .value {
+    font-size: 1.5rem;
+  }
+
+  .btn {
+    font-size: 0.9rem;
+    padding: 0.6rem 1.1rem;
+  }
+}
+
+/* Mobiler (max-width: 480px) */
+@media (max-width: 480px) {
+  .results-container {
+    padding: 1rem;
+  }
+
+  .results-card {
+    padding: 1.5rem;
+  }
+
+  .results-card h1 {
+    font-size: 1.4rem;
+  }
+
+  .summary {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .metric {
+    padding: 0.8rem;
+    border-radius: 10px;
+  }
+
+  .label {
+    font-size: 0.8rem;
+  }
+
+  .value {
+    font-size: 1.3rem;
+  }
+
+  .actions {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .btn {
+    width: 100%;
+    font-size: 0.9rem;
+    padding: 0.7rem;
+  }
+
+  .error h2 {
+    font-size: 1.2rem;
+  }
+
+  .error p {
+    font-size: 0.9rem;
+  }
+}
+
 </style>
